@@ -1,165 +1,105 @@
 # Crypto Anomaly Monitor — Product Roadmap
 
-## Текущий статус
+## Current Status
 
-Версия: V2.7.1
+Version: V2.7.1
 
-Состояние:
+Status:
 
-* MODEL FREEZE
-* Outcome Tracking ACTIVE
-* Dashboard ACTIVE
-* Daily Reports ACTIVE
+- MODEL FREEZE
+- Outcome Tracking ACTIVE
+- Dashboard ACTIVE
+- Daily Reports ACTIVE
 
-Главная задача:
-Накопление и анализ статистики outcome без изменения торговой логики.
+Main Objective:
 
----
-
-# Этап 1. Statistical Validation
-
-Цель:
-Подтвердить или опровергнуть эффективность текущей модели.
-
-Источники данных:
-
-* setup_outcomes
-* outcome_dashboard
-* daily reports
-
-Исследования:
-
-* PRE_BREAKOUT vs CONTINUATION
-* LONG vs SHORT
-* setup_context
-* символы
-* комбинации regime + context + direction
-
-Результат:
-Понимание, какие сетапы обладают статистическим преимуществом.
+Collect and analyze outcome statistics without modifying trading logic.
 
 ---
 
-# Этап 2. Signal Ranking
+# Phase 1 — Statistical Validation
 
-Цель:
-Перейти от одинаковых сигналов к ранжированию.
+Goal:
 
-Пример:
+Validate or invalidate the current model using real outcome data.
 
-A+ Setup
+Data Sources:
 
-* Count > 30
-* Hit5 > 80%
-* AvgMFE > 10%
+- setup_outcomes
+- outcome_dashboard
+- daily outcome reports
 
-A Setup
+Research Areas:
 
-* Count > 20
-* Hit5 > 70%
+- PRE_BREAKOUT vs CONTINUATION
+- LONG vs SHORT
+- setup_context analysis
+- symbol analysis
+- regime + context + direction combinations
 
-B Setup
+Success Criteria:
 
-* Средняя статистика
+- 150–200 complete outcomes collected
+- Stable statistics across major setup groups
+- Identification of strong and weak setup populations
 
-C Setup
+Rules:
 
-* Низкая статистика
-
-Телеграм-сигнал:
-
-LABUSDT
-
-A+ Setup
-
-PRE_BREAKOUT
-TREND_COMPRESSION
-LONG
-
-Historical:
-Count: 31
-Hit5: 90%
-AvgMFE: 17.3%
+- No model modifications before sufficient statistical evidence
+- No threshold optimization before validation is complete
 
 ---
 
-# Этап 3. Risk-Based Position Sizing
+# Phase 2 — V2.8 Research
 
-Цель:
-Размер позиции зависит от качества сетапа.
+Potential research directions:
 
-Пример:
+- Filter weak setup populations
+- Improve context classification
+- Improve directional accuracy
+- Analyze time-to-target behavior
+- Analyze setup quality segmentation
 
-A+ → 5% капитала
-A  → 3% капитала
-B  → 2% капитала
-C  → пропуск
+Candidate Research Topics:
 
-Статистика начинает управлять риском.
-
----
-
-# Этап 4. Trader Dashboard
-
-Цель:
-Сформировать единый интерфейс принятия решений.
-
-Отображать:
-
-* лучшие сигналы дня
-* рейтинг сигналов
-* статистику режима
-* статистику контекста
-* статистику символа
-* историческую эффективность
-
-Результат:
-Трейдер видит не просто сигнал, а его подтверждённую статистику.
+- PRE_BREAKOUT + RANGE_COMPRESSION
+- CONTINUATION execution timing
+- LONG vs SHORT asymmetry
+- Symbol-specific behavior
 
 ---
 
-# Этап 5. Semi-Automated Execution
+# Phase 3 — Trade Execution Layer
 
-Цель:
-Система предлагает готовую сделку.
+Goal:
 
-Параметры:
+Transform research findings into actionable trading rules.
 
-* направление
-* размер позиции
-* риск
-* тейк-профит
-* стоп-лосс
+Potential Features:
 
-Человек подтверждает вход.
-
----
-
-# Этап 6. Adaptive Intelligence
-
-Цель:
-Использовать накопленные outcome для адаптации модели.
-
-Возможности:
-
-* персональные профили монет
-* динамические пороги
-* адаптация под рыночный режим
-* автоматическое снижение веса слабых сетапов
-* автоматическое повышение веса сильных сетапов
-
-Условие начала работ:
-
-Минимум 300–500 complete outcomes.
+- Setup ranking
+- Trade recommendations
+- Risk scoring
+- Position sizing
+- Execution guidance
 
 ---
 
-# Принцип проекта
+# Phase 4 — Portfolio Layer
 
-Сначала статистика.
-Потом выводы.
-Потом изменения модели.
+Goal:
 
-Запрещено менять торговую логику на основании ощущений, отдельных сделок или коротких серий результатов.
+Operate multiple setups simultaneously.
 
-Любое изменение модели должно опираться на накопленную outcome-статистику.
+Potential Features:
+
+- Portfolio management
+- Exposure control
+- Capital allocation
+- Performance tracking
+
+---
+
+Current Research Milestone:
+
+150–200 complete outcomes

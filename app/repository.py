@@ -512,6 +512,91 @@ class Repository:
             "short_direction": short_row,
         }
 
+    async def outcome_dashboard_data(self) -> dict:
+        """Aggregate data for /outcome_dashboard and daily Telegram report.
+
+        Filters: status <> 'pending' (includes both 'partial' and 'complete').
+        """
+        def _hit_avg(col):
+            return func.avg(case((col.is_(True), 1.0), (col.is_(False), 0.0), else_=None))
+
+        not_pending = SetupOutcome.status != "pending"
+
+        total = (await self.session.scalar(
+            select(func.count()).select_from(SetupOutcome).where(not_pending)
+        )) or 0
+
+        # Section 1: per market_regime
+        regime_rows = (await self.session.execute(
+            select(
+                SetupOutcome.market_regime,
+                func.count().label("count"),
+                func.avg(SetupOutcome.return_4h).label("avg_return_4h"),
+                func.avg(SetupOutcome.return_12h).label("avg_return_12h"),
+                func.avg(SetupOutcome.mfe_4h).label("avg_mfe_4h"),
+                func.avg(SetupOutcome.mfe_12h).label("avg_mfe_12h"),
+                _hit_avg(SetupOutcome.hit_3pct).label("hit_3pct"),
+                _hit_avg(SetupOutcome.hit_5pct).label("hit_5pct"),
+                _hit_avg(SetupOutcome.hit_10pct).label("hit_10pct"),
+            )
+            .where(not_pending)
+            .group_by(SetupOutcome.market_regime)
+        )).all()
+
+        # Section 2: per market_regime + setup_context
+        context_rows = (await self.session.execute(
+            select(
+                SetupOutcome.market_regime,
+                SetupOutcome.setup_context,
+                func.count().label("count"),
+                func.avg(SetupOutcome.mfe_4h).label("avg_mfe_4h"),
+                _hit_avg(SetupOutcome.hit_5pct).label("hit_5pct"),
+            )
+            .where(not_pending)
+            .group_by(SetupOutcome.market_regime, SetupOutcome.setup_context)
+        )).all()
+
+        # Section 3: per direction
+        direction_rows = (await self.session.execute(
+            select(
+                SetupOutcome.setup_direction,
+                func.count().label("count"),
+                func.avg(SetupOutcome.return_4h).label("avg_return_4h"),
+                func.avg(SetupOutcome.mfe_4h).label("avg_mfe_4h"),
+                _hit_avg(SetupOutcome.hit_3pct).label("hit_3pct"),
+                _hit_avg(SetupOutcome.hit_5pct).label("hit_5pct"),
+                _hit_avg(SetupOutcome.hit_10pct).label("hit_10pct"),
+            )
+            .where(not_pending)
+            .group_by(SetupOutcome.setup_direction)
+        )).all()
+
+        # Section 4: per symbol (count >= 3 only)
+        symbol_rows = (await self.session.execute(
+            select(
+                Instrument.symbol,
+                func.count().label("count"),
+                func.avg(SetupOutcome.return_4h).label("avg_return_4h"),
+                func.avg(SetupOutcome.mfe_4h).label("avg_mfe_4h"),
+                _hit_avg(SetupOutcome.hit_3pct).label("hit_3pct"),
+                _hit_avg(SetupOutcome.hit_5pct).label("hit_5pct"),
+                _hit_avg(SetupOutcome.hit_10pct).label("hit_10pct"),
+            )
+            .join(Instrument, SetupOutcome.instrument_id == Instrument.id)
+            .where(not_pending)
+            .group_by(Instrument.symbol)
+            .having(func.count() >= 3)
+            .order_by(desc(func.count()))
+        )).all()
+
+        return {
+            "total": total,
+            "regime_rows": regime_rows,
+            "context_rows": context_rows,
+            "direction_rows": direction_rows,
+            "symbol_rows": symbol_rows,
+        }
+
     @staticmethod
     def _decimal(value: float | int | Decimal) -> Decimal:
         return Decimal(str(round(float(value), 8)))

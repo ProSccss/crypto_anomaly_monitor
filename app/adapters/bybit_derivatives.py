@@ -24,12 +24,18 @@ class BybitDerivativesClient:
             raise BybitAPIError(f"Bybit error {payload.get('retCode')}: {payload.get('retMsg')}")
         return payload["result"]
 
-    async def fetch_ticker(self, symbol: str) -> dict:
+    async def fetch_ticker(self, symbol: str) -> dict | None:
         result = await self.get("/v5/market/tickers", {"category": "linear", "symbol": symbol})
+        if not result.get("list"):
+            logger.warning("ticker_empty_list", extra={"symbol": symbol})
+            return None
         return result["list"][0]
 
-    async def fetch_instrument(self, symbol: str) -> dict:
+    async def fetch_instrument(self, symbol: str) -> dict | None:
         result = await self.get("/v5/market/instruments-info", {"category": "linear", "symbol": symbol})
+        if not result.get("list"):
+            logger.warning("instrument_empty_list", extra={"symbol": symbol})
+            return None
         return result["list"][0]
 
     async def fetch_ratio(self, symbol: str) -> dict:

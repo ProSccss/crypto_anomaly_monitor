@@ -217,3 +217,51 @@ class WhyNotResponse(BaseModel):
     gate_b: GateBStatus
     direction: DirectionCondition | None = None   # populated when a gate passes
     verdict: str
+
+
+# ── Outcome Dashboard ──────────────────────────────────────────────────────────
+
+class RegimeSummary(BaseModel):
+    count: int
+    avg_return_4h: float | None = None
+    avg_return_12h: float | None = None
+    avg_mfe_4h: float | None = None
+    avg_mfe_12h: float | None = None
+    hit_3pct: float | None = None
+    hit_5pct: float | None = None
+    hit_10pct: float | None = None
+
+
+class ContextStats(BaseModel):
+    count: int
+    avg_mfe_4h: float | None = None
+    hit_5pct: float | None = None
+
+
+class DirectionStats(BaseModel):
+    count: int
+    avg_return_4h: float | None = None
+    avg_mfe_4h: float | None = None
+    hit_3pct: float | None = None
+    hit_5pct: float | None = None
+    hit_10pct: float | None = None
+
+
+class SymbolStats(BaseModel):
+    count: int
+    avg_return_4h: float | None = None
+    avg_mfe_4h: float | None = None
+    hit_3pct: float | None = None
+    hit_5pct: float | None = None
+    hit_10pct: float | None = None
+
+
+class OutcomeDashboardResponse(BaseModel):
+    as_of: datetime
+    complete_outcomes: int
+    pre_breakout: RegimeSummary | None = None
+    continuation: RegimeSummary | None = None
+    # regime -> context -> stats  e.g. "PRE_BREAKOUT" -> "TREND_COMPRESSION" -> {...}
+    context_breakdown: dict[str, dict[str, ContextStats]]
+    direction_breakdown: dict[str, DirectionStats]
+    symbol_breakdown: dict[str, SymbolStats]

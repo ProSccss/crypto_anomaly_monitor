@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from datetime import UTC, datetime
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy.exc import IntegrityError
@@ -11,6 +12,13 @@ from app.repository import Repository
 from app.services.alert_policy import AlertPolicy
 from app.services.data_quality import DataQualityService
 from app.services.features import FeatureEngine
+from app.schemas import (
+    ContextStats,
+    DirectionStats,
+    OutcomeDashboardResponse,
+    RegimeSummary,
+    SymbolStats,
+)
 from app.services.outcome_evaluator import create_outcome_for_setup, evaluate_pending_outcomes
 from app.services.predictive import PredictiveEngine
 from app.services.scoring import SignalEngine
@@ -51,6 +59,16 @@ class MonitorService:
             coalesce=True,
             misfire_grace_time=60,
         )
+        self.scheduler.add_job(
+            self._run_daily_report,
+            "cron",
+            hour=19,
+            minute=0,
+            id="daily_outcome_report",
+            max_instances=1,
+            coalesce=True,
+            misfire_grace_time=300,
+        )
         self.scheduler.start()
         await self.poll_all()
         self.liquidation_task = asyncio.create_task(self.consume_liquidations(), name="bybit-liquidations")
@@ -68,6 +86,8 @@ class MonitorService:
     async def poll_symbol(self, symbol: str) -> None:
         try:
             snapshot = await self.client.fetch_snapshot(symbol)
+            if snapshot is None:
+                return
             quality = self.data_quality.assess_snapshot(snapshot)
             snapshot = snapshot.with_quality(quality)
             try:
@@ -123,6 +143,78 @@ class MonitorService:
                 await session.commit()
         except Exception:
             logger.exception("outcome_evaluator_cycle_failed")
+
+    async def _run_daily_report(self) -> None:
+        try:
+            async with SessionFactory() as session:
+                repo = Repository(session)
+                data = await repo.outcome_dashboard_data()
+
+            def _hit(v):
+                return round(float(v) * 100, 1) if v is not None else None
+
+            def _f(v):
+                return round(float(v), 1) if v is not None else None
+
+            regime_map: dict[str, RegimeSummary] = {}
+            for r in data["regime_rows"]:
+                regime_map[r.market_regime] = RegimeSummary(
+                    count=r.count,
+                    avg_return_4h=_f(r.avg_return_4h),
+                    avg_return_12h=_f(r.avg_return_12h),
+                    avg_mfe_4h=_f(r.avg_mfe_4h),
+                    avg_mfe_12h=_f(r.avg_mfe_12h),
+                    hit_3pct=_hit(r.hit_3pct),
+                    hit_5pct=_hit(r.hit_5pct),
+                    hit_10pct=_hit(r.hit_10pct),
+                )
+
+            context_breakdown: dict[str, dict[str, ContextStats]] = {}
+            for r in data["context_rows"]:
+                context_breakdown.setdefault(r.market_regime, {})[r.setup_context] = ContextStats(
+                    count=r.count,
+                    avg_mfe_4h=_f(r.avg_mfe_4h),
+                    hit_5pct=_hit(r.hit_5pct),
+                )
+
+            direction_breakdown: dict[str, DirectionStats] = {
+                r.setup_direction: DirectionStats(
+                    count=r.count,
+                    avg_return_4h=_f(r.avg_return_4h),
+                    avg_mfe_4h=_f(r.avg_mfe_4h),
+                    hit_3pct=_hit(r.hit_3pct),
+                    hit_5pct=_hit(r.hit_5pct),
+                    hit_10pct=_hit(r.hit_10pct),
+                )
+                for r in data["direction_rows"]
+            }
+
+            symbol_breakdown: dict[str, SymbolStats] = {
+                r.symbol: SymbolStats(
+                    count=r.count,
+                    avg_return_4h=_f(r.avg_return_4h),
+                    avg_mfe_4h=_f(r.avg_mfe_4h),
+                    hit_3pct=_hit(r.hit_3pct),
+                    hit_5pct=_hit(r.hit_5pct),
+                    hit_10pct=_hit(r.hit_10pct),
+                )
+                for r in data["symbol_rows"]
+            }
+
+            dashboard = OutcomeDashboardResponse(
+                as_of=datetime.now(UTC),
+                complete_outcomes=data["total"],
+                pre_breakout=regime_map.get("PRE_BREAKOUT"),
+                continuation=regime_map.get("CONTINUATION"),
+                context_breakdown=context_breakdown,
+                direction_breakdown=direction_breakdown,
+                symbol_breakdown=symbol_breakdown,
+            )
+
+            await self.notifier.send_daily_report(dashboard)
+            logger.info("daily_outcome_report_sent", extra={"complete_outcomes": data["total"]})
+        except Exception:
+            logger.exception("daily_outcome_report_failed")
 
     async def consume_liquidations(self) -> None:
         async for liquidation in self.client.liquidation_stream(self.settings.monitored_symbols):

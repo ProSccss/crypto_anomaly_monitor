@@ -14,20 +14,25 @@ from app.schemas import (
     BucketStats,
     CalibrationBucket,
     CalibrationResponse,
+    ContextStats,
     DirectionCondition,
+    DirectionStats,
     FeatureBucket,
     FeatureResearchItem,
     FeatureResearchResponse,
     FeatureSnapshotResponse,
     GateAStatus,
     GateBStatus,
+    OutcomeDashboardResponse,
     PerformanceResponse,
     PredictiveSetupResponse,
     RegimeAuditItem,
     RegimeAuditResponse,
+    RegimeSummary,
     ScannerItemResponse,
     SignalResponse,
     SnapshotResponse,
+    SymbolStats,
     WhyNotResponse,
 )
 from app.services.monitor import MonitorService
@@ -638,6 +643,91 @@ async def why_not(symbol: str, session: AsyncSession = Depends(get_session)):
         gate_b=gate_b,
         direction=direction,
         verdict=verdict,
+    )
+
+
+def _pct(v) -> float | None:
+    """Convert 0–1 ratio to percentage, round to 1 decimal. None-safe."""
+    return round(float(v) * 100, 1) if v is not None else None
+
+
+def _f(v, decimals: int = 1) -> float | None:
+    return round(float(v), decimals) if v is not None else None
+
+
+@app.get("/outcome_dashboard", response_model=OutcomeDashboardResponse)
+async def outcome_dashboard(session: AsyncSession = Depends(get_session)):
+    """Aggregated outcome statistics for all non-pending setup_outcomes.
+
+    Sections:
+      1. Summary per market_regime (PRE_BREAKOUT / CONTINUATION)
+      2. Context breakdown (market_regime × setup_context)
+      3. Direction breakdown (LONG / SHORT / NEUTRAL)
+      4. Symbol breakdown (count >= 3 only)
+    """
+    repo = Repository(session)
+    data = await repo.outcome_dashboard_data()
+
+    # --- Section 1: regime summaries ---
+    regime_map: dict[str, RegimeSummary] = {}
+    for r in data["regime_rows"]:
+        regime_map[r.market_regime] = RegimeSummary(
+            count=r.count,
+            avg_return_4h=_f(r.avg_return_4h),
+            avg_return_12h=_f(r.avg_return_12h),
+            avg_mfe_4h=_f(r.avg_mfe_4h),
+            avg_mfe_12h=_f(r.avg_mfe_12h),
+            hit_3pct=_pct(r.hit_3pct),
+            hit_5pct=_pct(r.hit_5pct),
+            hit_10pct=_pct(r.hit_10pct),
+        )
+
+    # --- Section 2: context breakdown nested by regime ---
+    context_breakdown: dict[str, dict[str, ContextStats]] = {}
+    for r in data["context_rows"]:
+        regime_key = r.market_regime
+        if regime_key not in context_breakdown:
+            context_breakdown[regime_key] = {}
+        context_breakdown[regime_key][r.setup_context] = ContextStats(
+            count=r.count,
+            avg_mfe_4h=_f(r.avg_mfe_4h),
+            hit_5pct=_pct(r.hit_5pct),
+        )
+
+    # --- Section 3: direction breakdown ---
+    direction_breakdown: dict[str, DirectionStats] = {
+        r.setup_direction: DirectionStats(
+            count=r.count,
+            avg_return_4h=_f(r.avg_return_4h),
+            avg_mfe_4h=_f(r.avg_mfe_4h),
+            hit_3pct=_pct(r.hit_3pct),
+            hit_5pct=_pct(r.hit_5pct),
+            hit_10pct=_pct(r.hit_10pct),
+        )
+        for r in data["direction_rows"]
+    }
+
+    # --- Section 4: symbol breakdown (count >= 3 enforced in DB query) ---
+    symbol_breakdown: dict[str, SymbolStats] = {
+        r.symbol: SymbolStats(
+            count=r.count,
+            avg_return_4h=_f(r.avg_return_4h),
+            avg_mfe_4h=_f(r.avg_mfe_4h),
+            hit_3pct=_pct(r.hit_3pct),
+            hit_5pct=_pct(r.hit_5pct),
+            hit_10pct=_pct(r.hit_10pct),
+        )
+        for r in data["symbol_rows"]
+    }
+
+    return OutcomeDashboardResponse(
+        as_of=datetime.now(UTC),
+        complete_outcomes=data["total"],
+        pre_breakout=regime_map.get("PRE_BREAKOUT"),
+        continuation=regime_map.get("CONTINUATION"),
+        context_breakdown=context_breakdown,
+        direction_breakdown=direction_breakdown,
+        symbol_breakdown=symbol_breakdown,
     )
 
 

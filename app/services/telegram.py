@@ -74,62 +74,222 @@ class TelegramNotifier:
             logger.info("telegram_disabled_daily_report")
             return False
 
-        def _fmt_regime(summary) -> str:
+        SEP = "━━━━━━━━━━━━━━\n"
+
+        def _edge_label(hit5: float | None) -> str:
+            if hit5 is None:
+                return "NO DATA"
+            if hit5 >= 70:
+                return "STRONG EDGE"
+            if hit5 >= 40:
+                return "MODERATE EDGE"
+            return "WEAK EDGE"
+
+        def _mfe(v: float | None) -> str:
+            return f"+{v:.1f}%" if v is not None else "n/a"
+
+        def _hit(v: float | None) -> str:
+            return f"{v:.0f}%" if v is not None else "n/a"
+
+        # --- Regime ranking ---
+        regimes = []
+        for name, label, summary in [
+            ("PRE_BREAKOUT", "PRE_BREAKOUT", dashboard.pre_breakout),
+            ("CONTINUATION", "CONTINUATION", dashboard.continuation),
+        ]:
+            if summary is not None:
+                regimes.append((label, summary))
+
+        regimes_by_hit5 = sorted(
+            regimes,
+            key=lambda x: x[1].hit_5pct if x[1].hit_5pct is not None else -1,
+            reverse=True,
+        )
+        leading_regime = regimes_by_hit5[0] if regimes_by_hit5 else None
+        weakest_regime = regimes_by_hit5[-1] if len(regimes_by_hit5) > 1 else None
+
+        def _regime_block(emoji: str, heading: str, label: str, summary) -> str:
             if summary is None:
-                return "  No data\n"
-            ret = f"+{summary.avg_return_4h:.1f}%" if summary.avg_return_4h is not None else "n/a"
-            mfe = f"+{summary.avg_mfe_4h:.1f}%" if summary.avg_mfe_4h is not None else "n/a"
-            h3  = f"{summary.hit_3pct:.0f}%" if summary.hit_3pct is not None else "n/a"
-            h5  = f"{summary.hit_5pct:.0f}%" if summary.hit_5pct is not None else "n/a"
-            h10 = f"{summary.hit_10pct:.0f}%" if summary.hit_10pct is not None else "n/a"
+                return f"{emoji} {heading}\n\nn/a\n\n{SEP}"
             return (
-                f"Count      {summary.count}\n"
-                f"AvgRet4h   {ret}\n"
-                f"AvgMFE4h   {mfe}\n"
-                f"Hit3       {h3}\n"
-                f"Hit5       {h5}\n"
-                f"Hit10      {h10}\n"
+                f"{emoji} {heading}\n\n"
+                f"{label}\n\n"
+                f"Hit5:     {_hit(summary.hit_5pct)}\n"
+                f"Hit10:    {_hit(summary.hit_10pct)}\n"
+                f"AvgMFE4h: {_mfe(summary.avg_mfe_4h)}\n\n"
+                f"Status:\n{_edge_label(summary.hit_5pct)}\n\n"
+                f"{SEP}"
             )
 
-        # best / worst context across all regimes by avg_mfe_4h
-        all_contexts: list[tuple[str, float]] = []
-        for regime_contexts in dashboard.context_breakdown.values():
-            for ctx_name, stats in regime_contexts.items():
-                if stats.avg_mfe_4h is not None:
-                    all_contexts.append((ctx_name, stats.avg_mfe_4h))
+        # --- Context ranking (across all regimes by avg_mfe_4h, count >= 5) ---
+        all_ctx: list[tuple[str, float, float | None]] = []
+        for regime_ctxs in dashboard.context_breakdown.values():
+            for ctx_name, stats in regime_ctxs.items():
+                if stats.avg_mfe_4h is not None and stats.count >= 5:
+                    all_ctx.append((ctx_name, stats.avg_mfe_4h, stats.hit_5pct))
 
-        best_ctx = max(all_contexts, key=lambda x: x[1]) if all_contexts else None
-        worst_ctx = min(all_contexts, key=lambda x: x[1]) if all_contexts else None
+        best_ctx  = max(all_ctx, key=lambda x: x[1]) if all_ctx else None
+        worst_ctx = min(all_ctx, key=lambda x: x[1]) if all_ctx else None
 
-        best_block = (
-            f"Best Context\n{best_ctx[0]}\nAvgMFE4h   +{best_ctx[1]:.1f}%\n"
-            if best_ctx else "Best Context\nn/a\n"
+        def _ctx_block(emoji: str, heading: str, ctx) -> str:
+            if ctx is None:
+                return f"{emoji} {heading}\n\nn/a\n\n{SEP}"
+            return (
+                f"{emoji} {heading}\n\n"
+                f"{ctx[0]}\n\n"
+                f"AvgMFE4h: {_mfe(ctx[1])}\n"
+                f"Hit5:     {_hit(ctx[2])}\n\n"
+                f"{SEP}"
+            )
+
+        # --- Direction winner (LONG vs SHORT) ---
+        long_s  = dashboard.direction_breakdown.get("LONG")
+        short_s = dashboard.direction_breakdown.get("SHORT")
+
+        def _dir_line(label: str, stats) -> str:
+            if stats is None:
+                return f"{label}\n  n/a\n"
+            return (
+                f"{label}\n"
+                f"Hit5:     {_hit(stats.hit_5pct)}\n"
+                f"AvgMFE4h: {_mfe(stats.avg_mfe_4h)}\n"
+            )
+
+        long_hit5  = long_s.hit_5pct  if long_s  is not None else -1
+        short_hit5 = short_s.hit_5pct if short_s is not None else -1
+        dir_winner = "LONG" if long_hit5 >= short_hit5 else "SHORT"
+
+        dir_block = (
+            "📈 DIRECTION REVIEW\n\n"
+            + _dir_line("LONG", long_s)
+            + "\n"
+            + _dir_line("SHORT", short_s)
+            + f"\nWinner:\n{dir_winner}\n\n"
+            + SEP
         )
-        worst_block = (
-            f"Worst Context\n{worst_ctx[0]}\nAvgMFE4h   +{worst_ctx[1]:.1f}%\n"
-            if worst_ctx else "Worst Context\nn/a\n"
+
+        # --- Best symbol by hit_5pct (count >= 5) ---
+        symbols_ranked = sorted(
+            [(sym, stats) for sym, stats in dashboard.symbol_breakdown.items() if stats.count >= 5],
+            key=lambda x: (x[1].hit_5pct if x[1].hit_5pct is not None else -1),
+            reverse=True,
+        )
+        best_sym = symbols_ranked[0] if symbols_ranked else None
+
+        sym_block = "🥇 BEST SYMBOL\n\n"
+        if best_sym:
+            sym_block += (
+                f"{best_sym[0]}\n\n"
+                f"Hit5:     {_hit(best_sym[1].hit_5pct)}\n"
+                f"AvgMFE4h: {_mfe(best_sym[1].avg_mfe_4h)}\n\n"
+            )
+        else:
+            sym_block += "n/a\n\n"
+        sym_block += SEP
+
+        # --- Worst regime+context combo (count >= 10) for AVOID SETUPS ---
+        avoid_combos: list[tuple[str, str, float | None, float | None, int]] = []
+        for regime_name, regime_ctxs in dashboard.context_breakdown.items():
+            for ctx_name, stats in regime_ctxs.items():
+                if stats.count >= 10:
+                    avoid_combos.append((regime_name, ctx_name, stats.hit_5pct, stats.avg_mfe_4h, stats.count))
+        avoid_combo = (
+            min(avoid_combos, key=lambda x: x[2] if x[2] is not None else 999)
+            if avoid_combos else None
         )
 
+        # --- Research stage ---
+        n = dashboard.complete_outcomes
+        if n >= 250:
+            research_stage = "Mature (250+)"
+        elif n >= 100:
+            research_stage = "Developing (100–249)"
+        else:
+            research_stage = "Early (<100)"
+
+        # --- Research findings (human-language insights) ---
+        findings: list[str] = []
+
+        if leading_regime and weakest_regime:
+            lr_label, lr_sum = leading_regime
+            wr_label, wr_sum = weakest_regime
+            findings.append(
+                f"PRE_BREAKOUT setups outperform CONTINUATION: Hit5 {_hit(lr_sum.hit_5pct)} vs {_hit(wr_sum.hit_5pct)}."
+                if lr_label == "PRE_BREAKOUT"
+                else f"CONTINUATION setups outperform PRE_BREAKOUT: Hit5 {_hit(lr_sum.hit_5pct)} vs {_hit(wr_sum.hit_5pct)}."
+            )
+        elif leading_regime:
+            lr_label, lr_sum = leading_regime
+            findings.append(f"{lr_label} is the only observed regime so far (Hit5={_hit(lr_sum.hit_5pct)}).")
+
+        if best_ctx and worst_ctx and best_ctx[0] != worst_ctx[0]:
+            findings.append(
+                f"{best_ctx[0]} shows the strongest entry quality (MFE4h={_mfe(best_ctx[1])}); "
+                f"{worst_ctx[0]} is the weakest ({_mfe(worst_ctx[1])})."
+            )
+        elif best_ctx:
+            findings.append(f"Only one context has enough data: {best_ctx[0]} (MFE4h={_mfe(best_ctx[1])}).")
+
+        if long_s and short_s:
+            findings.append(
+                f"LONG setups show a clear edge over SHORT ({_hit(long_s.hit_5pct)} vs {_hit(short_s.hit_5pct)} Hit5)."
+                if long_hit5 > short_hit5
+                else f"SHORT setups outperform LONG ({_hit(short_s.hit_5pct)} vs {_hit(long_s.hit_5pct)} Hit5)."
+                if short_hit5 > long_hit5
+                else f"LONG and SHORT are statistically tied at {_hit(long_s.hit_5pct)} Hit5."
+            )
+        elif long_s:
+            findings.append(f"Only LONG direction observed so far ({_hit(long_s.hit_5pct)} Hit5, n={long_s.count}).")
+        elif short_s:
+            findings.append(f"Only SHORT direction observed so far ({_hit(short_s.hit_5pct)} Hit5, n={short_s.count}).")
+
+        if best_sym:
+            sym_name, sym_stats = best_sym
+            findings.append(
+                f"{sym_name} leads the symbol ranking with {_hit(sym_stats.hit_5pct)} Hit5 "
+                f"and {_mfe(sym_stats.avg_mfe_4h)} avg MFE4h (n={sym_stats.count})."
+            )
+        else:
+            findings.append("No symbol has reached the minimum 5-outcome threshold yet.")
+
+        findings_text = "\n\n".join(f"• {f}" for f in findings)
+
+        # --- AVOID SETUPS block ---
+        if avoid_combo:
+            ac_regime, ac_ctx, ac_hit5, ac_mfe, ac_count = avoid_combo
+            avoid_block = (
+                f"⛔ AVOID SETUPS\n\n"
+                f"{ac_regime} + {ac_ctx}\n\n"
+                f"n={ac_count}\n"
+                f"Hit5:     {_hit(ac_hit5)}\n"
+                f"AvgMFE4h: {_mfe(ac_mfe)}\n\n"
+                f"Statistically significant — this combination shows no reliable edge.\n\n"
+                + SEP
+            )
+        else:
+            avoid_block = ""
+
+        # --- Assemble ---
         message = (
-            "📈 DAILY OUTCOME REPORT\n"
-            "━━━━━━━━━━━━━━━━━━━━\n"
-            "\n"
-            f"Complete outcomes: {dashboard.complete_outcomes}\n"
-            "\n"
-            "PRE_BREAKOUT\n"
-            + _fmt_regime(dashboard.pre_breakout)
-            + "\n"
-            "CONTINUATION\n"
-            + _fmt_regime(dashboard.continuation)
-            + "\n"
-            + best_block
-            + "\n"
-            + worst_block
-            + "\n"
-            "━━━━━━━━━━━━━━━━━━━━\n"
-            "Model: V2.7 FREEZE\n"
-            "Research mode"
+            f"📊 DAILY OUTCOME REPORT\n{SEP}\n"
+            f"Outcomes: {dashboard.complete_outcomes}\n"
+            f"Research Stage: {research_stage}\n\n"
+            + SEP
+            + f"🔬 RESEARCH FINDINGS\n\n{findings_text}\n\n"
+            + SEP
         )
+
+        if leading_regime:
+            message += _regime_block("🏆", "LEADING REGIME", leading_regime[0], leading_regime[1])
+        if weakest_regime:
+            message += _regime_block("⚠️", "WEAKEST REGIME", weakest_regime[0], weakest_regime[1])
+
+        message += _ctx_block("🏆", "BEST CONTEXT",  best_ctx)
+        message += _ctx_block("⚠️", "WORST CONTEXT", worst_ctx)
+        message += avoid_block
+        message += dir_block
+        message += sym_block
+        message += "Model:\nV2.7 FREEZE\nResearch Mode"
 
         await self.bot.send_message(chat_id=self.chat_id, text=message)
         return True

@@ -69,19 +69,10 @@ Cooldown ранее влиял только на Telegram, но не на сох
 Cooldown выполняется до создания predictive_setup.
 
 ---
+## Current Requirements
 
-## Условия разморозки модели
+Current freeze requirements are maintained in PROJECT_STATUS.md.
 
-Минимум:
+PROJECT_STATUS.md is the source of truth for active research thresholds and unfreeze conditions.
 
-* 30 complete outcomes
-
-Рекомендуемо:
-
-* 50+ complete outcomes
-
-Предпочтительно:
-
-* 100+ complete outcomes
-
-Только после этого допускается пересмотр модели.
+MODEL_FREEZE_V27 documents the original freeze decision and rationale only.

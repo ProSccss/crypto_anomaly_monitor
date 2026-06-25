@@ -1,0 +1,191 @@
+# Crypto Anomaly Monitor — Long-Term Product Evolution
+
+## Текущий статус
+
+Версия: V2.7.1
+
+Состояние:
+
+* MODEL FREEZE
+* Outcome Tracking ACTIVE
+* Dashboard ACTIVE
+* Daily Reports ACTIVE
+
+Главная задача:
+Накопление и анализ статистики outcome без изменения торговой логики.
+
+---
+
+# Этап 1. Statistical Validation
+
+Цель:
+Подтвердить или опровергнуть эффективность текущей модели.
+
+Источники данных:
+
+* setup_outcomes
+* outcome_dashboard
+* daily reports
+
+Исследования:
+
+* PRE_BREAKOUT vs CONTINUATION
+* LONG vs SHORT
+* setup_context
+* символы
+* комбинации regime + context + direction
+
+Результат:
+Понимание, какие сетапы обладают статистическим преимуществом.
+
+---
+
+# Этап 2. Signal Ranking
+
+Цель:
+Перейти от одинаковых сигналов к ранжированию.
+
+Пример:
+
+A+ Setup
+
+* Count > 30
+* Hit5 > 80%
+* AvgMFE > 10%
+
+A Setup
+
+* Count > 20
+* Hit5 > 70%
+
+B Setup
+
+* Средняя статистика
+
+C Setup
+
+* Низкая статистика
+
+Телеграм-сигнал:
+
+LABUSDT
+
+A+ Setup
+
+PRE_BREAKOUT
+TREND_COMPRESSION
+LONG
+
+Historical:
+Count: 31
+Hit5: 90%
+AvgMFE: 17.3%
+
+---
+
+# Этап 3. Risk-Based Position Sizing
+
+Цель:
+Размер позиции зависит от качества сетапа.
+
+Пример:
+
+A+ → 5% капитала
+A  → 3% капитала
+B  → 2% капитала
+C  → пропуск
+
+Статистика начинает управлять риском.
+
+---
+
+# Этап 4. Trader Dashboard
+
+Цель:
+Сформировать единый интерфейс принятия решений.
+
+Отображать:
+
+* лучшие сигналы дня
+* рейтинг сигналов
+* статистику режима
+* статистику контекста
+* статистику символа
+* историческую эффективность
+
+Результат:
+Трейдер видит не просто сигнал, а его подтверждённую статистику.
+
+---
+
+# Этап 5. Semi-Automated Execution
+
+Цель:
+Система предлагает готовую сделку.
+
+Параметры:
+
+* направление
+* размер позиции
+* риск
+* тейк-профит
+* стоп-лосс
+
+Человек подтверждает вход.
+
+---
+
+# Этап 6. Adaptive Intelligence
+
+Цель:
+Использовать накопленные outcome для адаптации модели.
+
+Возможности:
+
+* персональные профили монет
+* динамические пороги
+* адаптация под рыночный режим
+* автоматическое снижение веса слабых сетапов
+* автоматическое повышение веса сильных сетапов
+
+Условие начала работ:
+
+Минимум 300–500 complete outcomes.
+
+---
+
+# Stage 7. Statistical Intelligence
+
+Goal:
+
+Learn which factors actually predict success.
+
+Research:
+
+- breakout_probability
+- squeeze_probability
+- expected_move_score
+- funding anomaly strength
+- OI acceleration
+- basis deviation
+
+Result:
+
+Transition from rule-based detection
+to evidence-driven signal scoring.
+
+Condition:
+
+500+ complete outcomes.
+
+---
+
+# Принцип проекта
+
+Сначала статистика.
+Потом выводы.
+Потом изменения модели.
+
+Запрещено менять торговую логику на основании ощущений, отдельных сделок или коротких серий результатов.
+
+Любое изменение модели должно опираться на накопленную outcome-статистику.

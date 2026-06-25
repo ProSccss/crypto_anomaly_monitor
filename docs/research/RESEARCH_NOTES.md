@@ -1,92 +1,99 @@
 # Research Notes
 
-## 2026-06-24
+Статус: Active
 
-Dataset:
+Документ содержит исследовательские гипотезы, вопросы и направления анализа.
 
-99 complete outcomes
-
----
-
-### Finding #1
-
-CONTINUATION significantly outperforms PRE_BREAKOUT.
-
-Metrics:
-
-- CONTINUATION Hit5 = 87.5%
-- PRE_BREAKOUT Hit5 = 34.7%
-
-CONTINUATION currently shows the strongest statistical edge.
+Фактические результаты и подтвержденные выводы хранятся в OUTCOME_REVIEW_*.md.
 
 ---
 
-### Finding #2
+## Hypothesis #1
 
-TREND_COMPRESSION appears significantly stronger than RANGE_COMPRESSION.
+PRE_BREAKOUT + RANGE_COMPRESSION содержит несколько различных подтипов сетапов.
 
-Metrics:
+Наблюдение:
 
-- TREND_COMPRESSION AvgMFE4h = 17.3%
-- RANGE_COMPRESSION AvgMFE4h = 2.0%
+* общая статистика показывает крайне слабый результат;
+* возможно внутри группы существуют редкие качественные сетапы, которые теряются в общей массе.
 
-TREND_COMPRESSION currently provides the highest-quality setups.
+Необходимо:
 
----
+* сегментация по breakout_probability;
+* сегментация по squeeze_probability;
+* сегментация по OI acceleration;
+* поиск признаков успешных 8% случаев.
 
-### Finding #3
-
-PRE_BREAKOUT + RANGE_COMPRESSION appears statistically weak.
-
-Metrics:
-
-- Count = 31
-- Hit5 = 8%
-- AvgMFE4h = 2.0%
-
-This is currently the weakest statistically meaningful population.
-
-Candidate for future filtering in V2.8.
-
-No model changes yet.
+Статус: OPEN
 
 ---
 
-### Finding #4
+## Hypothesis #2
 
-LONG setups outperform SHORT setups.
+CONTINUATION реализует основную часть движения значительно раньше 4 часов.
 
-Metrics:
+Наблюдение:
 
-- LONG Hit5 = 75%
-- SHORT Hit5 = 40%
+* высокий MFE;
+* высокий Hit5;
+* отрицательный AvgReturn12h.
 
-Need larger sample size before drawing final conclusions.
+Гипотеза:
 
----
+после сильного движения происходит откат или разворот.
 
-### Finding #5
+Необходимо:
 
-HUSDT is currently the strongest tracked symbol.
+* исследование Time-To-Hit;
+* определение среднего времени достижения Hit3 / Hit5 / Hit10.
 
-Metrics:
-
-- Count = 55
-- Hit5 = 79.4%
-- AvgMFE4h = 16.8%
-
-Need additional symbols and larger datasets before symbol-specific conclusions.
+Статус: OPEN
 
 ---
 
-Current Conclusion
+## Hypothesis #3
 
-The model already shows statistically meaningful separation between strong and weak setup populations.
+LONG-сетапы имеют устойчивое статистическое преимущество над SHORT.
 
-Most important observation:
+Наблюдение:
 
-PRE_BREAKOUT + RANGE_COMPRESSION consistently underperforms.
+LONG существенно превосходит SHORT по Hit5 и AvgMFE.
 
-Priority:
+Необходимо:
 
-Continue outcome collection until 150–200 complete outcomes before considering model modifications.
+* проверить эффект внутри отдельных символов;
+* исключить влияние доминирования HUSDT.
+
+Статус: OPEN
+
+---
+
+## Hypothesis #4
+
+Результаты модели зависят от конкретного символа сильнее, чем ожидалось.
+
+Наблюдение:
+
+HUSDT демонстрирует существенно лучшие результаты по сравнению с LABUSDT.
+
+Необходимо:
+
+* накопить статистику по дополнительным символам;
+* проверить переносимость модели между активами.
+
+Статус: OPEN
+
+---
+
+## Future Research Ideas
+
+* Time-To-Hit analysis
+* MAE profile analysis
+* Symbol clustering
+* Regime transition analysis
+* Dynamic confidence scoring
+* Setup quality ranking
+
+---
+
+Последнее обновление: 2026-06-24

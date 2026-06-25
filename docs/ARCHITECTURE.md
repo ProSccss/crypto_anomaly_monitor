@@ -1,141 +1,187 @@
-# PROJECT_MASTER.md
+# ARCHITECTURE.md
 
-# Crypto Anomaly Monitor
+# Архитектура проекта
 
-## Миссия проекта
+## Поток данных
 
-Crypto Anomaly Monitor — исследовательская система обнаружения редких рыночных состояний на криптовалютных деривативах.
+Bybit / Binance
 
-Система не является торговым ботом и не выдаёт торговых рекомендаций.
+↓
 
-Цель проекта:
+Exchange Adapters
 
-* обнаруживать редкие рыночные аномалии;
-* классифицировать режим рынка;
-* формировать predictive setups;
-* отслеживать результат через 1h / 4h / 12h;
-* накапливать статистику;
-* улучшать модель только на основании накопленных данных.
+↓
 
----
+Market Snapshot
 
-# Основной принцип
+↓
 
-Сначала данные.
+Feature Engine
 
-Потом выводы.
+↓
 
-Потом изменения модели.
+Feature Snapshot
 
-Никогда наоборот.
+↓
 
----
+Predictive Engine
 
-# Текущие рыночные режимы
+↓
 
-## PRE_BREAKOUT
+Predictive Setup
 
-Поиск состояния перед потенциальным движением.
+↓
 
-Условия:
+Setup Outcome
 
-* breakout_probability >= 25
-* squeeze_probability >= 30
-* confidence >= 0.80
-* data_quality = GOOD
-* direction condition
+↓
 
-Особенность:
-
-expected_move_score не используется как фильтр.
-
-Причина:
-
-EMS описывает уже начавшееся движение и оказался структурно несовместим с PRE_BREAKOUT.
+Performance / Calibration / Research
 
 ---
 
-## CONTINUATION
+# Основные сущности
 
-Поиск продолжения уже начавшегося движения.
+## Market Snapshot
 
-Условия:
+Сырые данные рынка:
 
-* squeeze_probability >= 45
-* expected_move_score >= 40
-* volume_percentile >= 50
-* confidence >= 0.80
-* data_quality = GOOD
-
----
-
-# Setup Context
-
-Используется только для аналитики.
-
-Не влияет на сигналы.
-
-## RANGE_COMPRESSION
-
-abs(price_return_4h) < 3%
-
-Рынок находится в диапазоне.
-
-## TREND_COMPRESSION
-
-abs(price_return_4h) >= 5%
-
-Рынок находится после выраженного движения.
-
-## UNKNOWN
-
-3% <= abs(price_return_4h) < 5%
-
-Промежуточное состояние.
+* цена
+* funding
+* open interest
+* ликвидации
+* объём
 
 ---
 
-# Outcome Tracking
+## Feature Snapshot
 
-Для каждого predictive setup создаётся outcome.
+Производные признаки.
 
-Контрольные точки:
+Текущие признаки:
 
-* 1h
-* 4h
-* 12h
+* oi_derisking
+* oi_crowding
+* volume_presence
+* volume_weakness
+* liq_fuel
+* funding_overheating
+* funding_cooling
+* price_settling
+* price_return_15m_abs
+* price_return_1h_abs
+* price_return_4h_abs
 
-Измеряются:
+---
 
-* return
-* MFE
-* MAE
+## Predictive Setup
+
+Результат работы модели.
+
+Содержит:
+
+* market_regime
+* setup_context
+* expected_direction
+* breakout_probability
+* squeeze_probability
+* expected_move_score
+* confidence
+
+---
+
+## Setup Outcome
+
+Фактический результат setup.
+
+Содержит:
+
+* return_1h
+
+* return_4h
+
+* return_12h
+
+* mfe_1h
+
+* mfe_4h
+
+* mfe_12h
+
+* mae_1h
+
+* mae_4h
+
+* mae_12h
+
 * hit_3pct
+
 * hit_5pct
+
 * hit_10pct
 
 ---
 
-# Model Freeze
+# Основные API
 
-Текущая версия:
+## /health
 
-V2.7
-
-Статус:
-
-MODEL FROZEN
-
-Любые изменения модели допускаются только после накопления достаточного количества outcome данных.
+Состояние системы.
 
 ---
 
-# Главный KPI проекта
+## /scanner
 
-Не количество сигналов.
+Список текущих setup.
 
-Не прибыль.
+---
 
-Главный KPI:
+## /regime_audit
 
-Накопление качественной статистики по рыночным режимам и их фактическим результатам.
+Показывает близость каждого инструмента к Gate A и Gate B.
+
+Используется для диагностики.
+
+---
+
+## /why_not/{symbol}
+
+Показывает причину отсутствия setup.
+
+Используется для диагностики.
+
+---
+
+## /performance
+
+Агрегированная статистика outcome.
+
+---
+
+## /calibration
+
+Калибровка predictive score против реальных результатов.
+
+---
+
+# Cooldown
+
+Cooldown применяется ДО создания setup.
+
+Один fingerprint может создать только один setup в течение cooldown-периода.
+
+Формат fingerprint:
+
+{symbol}:{setup_type}:{direction}
+
+Пример:
+
+LABUSDT:LONG_SQUEEZE_SETUP:SHORT
+
+---
+
+# Важное правило
+
+Любой новый фактор должен сначала попасть в feature snapshot.
+
+Только после накопления статистики допускается использование фактора в торговой логике.

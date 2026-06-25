@@ -1,175 +1,158 @@
-# Outcome Review — 2026-06-24
+# Outcome Review 2026-06-24
 
 Dataset:
 
 99 complete outcomes
 
-Status:
+Статус:
 
-Initial statistical review
-
----
-
-# PRE_BREAKOUT vs CONTINUATION
-
-| Metric | PRE_BREAKOUT | CONTINUATION |
-|----------|----------|----------|
-| Count | 68 | 31 |
-| Avg Return 4h | 1.4% | 0.9% |
-| Avg Return 12h | 1.6% | -5.0% |
-| Avg MFE 4h | 6.9% | 17.0% |
-| Avg MFE 12h | 13.6% | 23.6% |
-| Hit 3% | 44.9% | 91.7% |
-| Hit 5% | 34.7% | 87.5% |
-| Hit 10% | 20.4% | 58.3% |
-
-Observation:
-
-CONTINUATION produces substantially stronger moves but appears to realize gains earlier.
+Initial statistical review.
 
 ---
 
-# Context Breakdown
+## Executive Summary
 
-## CONTINUATION
+Основные выводы по первой статистически значимой выборке.
 
-TREND_COMPRESSION
+Выявлены существенные различия между режимами, контекстами, направлениями и отдельными символами.
 
-- Count: 29
-- AvgMFE4h: 17.3%
-- Hit5: 87.0%
-
-RANGE_COMPRESSION
-
-- Count: 1
-- Not statistically meaningful
+Модель остается в режиме исследования.
 
 ---
 
-## PRE_BREAKOUT
+## Regime Analysis
 
-TREND_COMPRESSION
+### PRE_BREAKOUT
 
-- Count: 33
-- AvgMFE4h: 11.8%
-- Hit5: 59.1%
+Count: 68
 
-RANGE_COMPRESSION
+* AvgReturn4h: +1.4%
+* AvgMFE4h: +6.9%
+* Hit5: 35%
+* Hit10: 20%
 
-- Count: 31
-- AvgMFE4h: 2.0%
-- Hit5: 8.0%
+Характеристика:
 
-UNKNOWN
-
-- Count: 4
-- Not statistically meaningful
+Более устойчивое движение, но относительно низкая вероятность достижения целевых уровней.
 
 ---
 
-# Direction Breakdown
+### CONTINUATION
 
-LONG
+Count: 31
 
-- Count: 36
-- AvgMFE4h: 14.9%
-- Hit5: 75.0%
+* AvgReturn4h: +1.3%
+* AvgMFE4h: +17.3%
+* Hit5: 91%
+* Hit10: 59%
 
-SHORT
+Характеристика:
 
-- Count: 57
-- AvgMFE4h: 8.1%
-- Hit5: 40.0%
+Сильнейший режим по качеству движения.
 
-NEUTRAL
-
-- Count: 6
-- AvgMFE4h: 5.3%
-- Hit5: 50.0%
-
-Observation:
-
-LONG currently outperforms SHORT.
+Основной кандидат на дальнейшее исследование.
 
 ---
 
-# Symbol Breakdown
+## Context Analysis
 
-HUSDT
+### TREND_COMPRESSION
 
-- Count: 55
-- AvgMFE4h: 16.8%
-- Hit5: 79.4%
+* AvgMFE4h: +17.3%
+* Hit5: 87%
 
-LABUSDT
-
-- Count: 32
-- AvgMFE4h: 4.4%
-- Hit5: 25.0%
-
-CLOUSDT
-
-- Count: 5
-- AvgMFE4h: 6.5%
-- Hit5: 60.0%
-
-WLDUSDT
-
-- Count: 3
-- Sample too small
+Лучший контекст.
 
 ---
 
-# Strongest Population
+### RANGE_COMPRESSION
 
-CONTINUATION + TREND_COMPRESSION
+* AvgMFE4h: +2.0%
+* Hit5: 8%
 
-Metrics:
-
-- Count: 29
-- AvgMFE4h: 17.3%
-- Hit5: 87.0%
+Худший контекст.
 
 ---
 
-# Weakest Population
+## Direction Analysis
+
+### LONG
+
+* Hit5: 75%
+* AvgMFE4h: +14.9%
+
+Показывает выраженное преимущество.
+
+---
+
+### SHORT
+
+* Hit5: 40%
+* AvgMFE4h: +8.1%
+
+Существенно уступает LONG.
+
+---
+
+## Symbol Analysis
+
+### HUSDT
+
+* Count: 55
+* Hit5: 79%
+* AvgMFE4h: +16.8%
+
+Лучший символ выборки.
+
+---
+
+### LABUSDT
+
+* Count: 32
+* Hit5: 25%
+* AvgMFE4h: +4.4%
+
+Слабые результаты.
+
+Требуется дальнейшее исследование.
+
+---
+
+## Worst Combination
 
 PRE_BREAKOUT + RANGE_COMPRESSION
 
-Metrics:
+Count: 31
 
-- Count: 31
-- AvgMFE4h: 2.0%
-- Hit5: 8.0%
+* Hit5: 8%
+* AvgMFE4h: +2.0%
 
-This population currently shows no reliable edge.
-
----
-
-# Research Priorities
-
-Priority 1
-
-Investigate PRE_BREAKOUT + RANGE_COMPRESSION.
+На текущий момент комбинация не демонстрирует статистического преимущества.
 
 ---
 
-Priority 2
+## Research Conclusions
 
-Study CONTINUATION timing and target realization.
-
----
-
-Priority 3
-
-Investigate LONG vs SHORT asymmetry.
+1. CONTINUATION значительно превосходит PRE_BREAKOUT.
+2. TREND_COMPRESSION значительно превосходит RANGE_COMPRESSION.
+3. LONG значительно превосходит SHORT.
+4. HUSDT показывает лучшие результаты среди исследуемых символов.
+5. PRE_BREAKOUT + RANGE_COMPRESSION является основной проблемной группой модели.
 
 ---
 
-Priority 4
+## Next Review
 
-Continue outcome accumulation.
+Следующий обзор рекомендуется провести после накопления:
 
-Target:
+150+ complete outcomes
 
-150–200 complete outcomes before model changes.
+или
+
+50+ outcomes для каждого режима отдельно.
+
+---
+
+Дата обзора: 2026-06-24
+Версия модели: V2.7.1
+Статус модели: FREEZE

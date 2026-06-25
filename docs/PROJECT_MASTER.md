@@ -1,187 +1,174 @@
-# ARCHITECTURE.md
+# PROJECT_MASTER.md
 
-# Архитектура проекта
+# Crypto Anomaly Monitor
 
-## Поток данных
+## Миссия проекта
 
-Bybit / Binance
+Crypto Anomaly Monitor — исследовательская система обнаружения редких рыночных состояний на криптовалютных деривативах.
 
-↓
+Система не является торговым ботом и не выдаёт торговых рекомендаций.
 
-Exchange Adapters
+Цель проекта:
 
-↓
-
-Market Snapshot
-
-↓
-
-Feature Engine
-
-↓
-
-Feature Snapshot
-
-↓
-
-Predictive Engine
-
-↓
-
-Predictive Setup
-
-↓
-
-Setup Outcome
-
-↓
-
-Performance / Calibration / Research
+* обнаруживать редкие рыночные аномалии;
+* классифицировать режим рынка;
+* формировать predictive setups;
+* отслеживать результат через 1h / 4h / 12h;
+* накапливать статистику;
+* улучшать модель только на основании накопленных данных.
 
 ---
 
-# Основные сущности
+# Основной принцип
 
-## Market Snapshot
+Сначала данные.
 
-Сырые данные рынка:
+Потом выводы.
 
-* цена
-* funding
-* open interest
-* ликвидации
-* объём
+Потом изменения модели.
+
+Никогда наоборот.
 
 ---
 
-## Feature Snapshot
+# Текущие рыночные режимы
 
-Производные признаки.
+## PRE_BREAKOUT
 
-Текущие признаки:
+Поиск состояния перед потенциальным движением.
 
-* oi_derisking
-* oi_crowding
-* volume_presence
-* volume_weakness
-* liq_fuel
-* funding_overheating
-* funding_cooling
-* price_settling
-* price_return_15m_abs
-* price_return_1h_abs
-* price_return_4h_abs
+Условия:
 
----
+* breakout_probability >= 25
+* squeeze_probability >= 30
+* confidence >= 0.80
+* data_quality = GOOD
+* direction condition
 
-## Predictive Setup
+Особенность:
 
-Результат работы модели.
+expected_move_score не используется как фильтр.
 
-Содержит:
+Причина:
 
-* market_regime
-* setup_context
-* expected_direction
-* breakout_probability
-* squeeze_probability
-* expected_move_score
-* confidence
+EMS описывает уже начавшееся движение и оказался структурно несовместим с PRE_BREAKOUT.
 
 ---
 
-## Setup Outcome
+## CONTINUATION
 
-Фактический результат setup.
+Поиск продолжения уже начавшегося движения.
 
-Содержит:
+Условия:
 
-* return_1h
+* squeeze_probability >= 45
+* expected_move_score >= 40
+* volume_percentile >= 50
+* confidence >= 0.80
+* data_quality = GOOD
 
-* return_4h
+---
 
-* return_12h
+# Setup Context
 
-* mfe_1h
+Используется только для аналитики.
 
-* mfe_4h
+Не влияет на сигналы.
 
-* mfe_12h
+## RANGE_COMPRESSION
 
-* mae_1h
+abs(price_return_4h) < 3%
 
-* mae_4h
+Рынок находится в диапазоне.
 
-* mae_12h
+## TREND_COMPRESSION
 
+abs(price_return_4h) >= 5%
+
+Рынок находится после выраженного движения.
+
+## UNKNOWN
+
+3% <= abs(price_return_4h) < 5%
+
+Промежуточное состояние.
+
+---
+
+# Outcome Tracking
+
+Для каждого predictive setup создаётся outcome.
+
+Контрольные точки:
+
+* 1h
+* 4h
+* 12h
+
+Измеряются:
+
+* return
+* MFE
+* MAE
 * hit_3pct
-
 * hit_5pct
-
 * hit_10pct
 
 ---
 
-# Основные API
+# Model Freeze
 
-## /health
+Текущая версия:
 
-Состояние системы.
+V2.7
 
----
+Статус:
 
-## /scanner
+MODEL FROZEN
 
-Список текущих setup.
-
----
-
-## /regime_audit
-
-Показывает близость каждого инструмента к Gate A и Gate B.
-
-Используется для диагностики.
+Любые изменения модели допускаются только после накопления достаточного количества outcome данных.
 
 ---
 
-## /why_not/{symbol}
+# Главный KPI проекта
 
-Показывает причину отсутствия setup.
+Не количество сигналов.
 
-Используется для диагностики.
+Не прибыль.
 
----
+Главный KPI:
 
-## /performance
+Накопление качественной статистики по рыночным режимам и их фактическим результатам.
 
-Агрегированная статистика outcome.
-
----
-
-## /calibration
-
-Калибровка predictive score против реальных результатов.
 
 ---
+# Documentation Rule
 
-# Cooldown
+Each piece of information must have exactly one source of truth.
 
-Cooldown применяется ДО создания setup.
+PROJECT_STATUS:
+Current state.
 
-Один fingerprint может создать только один setup в течение cooldown-периода.
+ARCHITECTURE:
+How the system works.
 
-Формат fingerprint:
+ARCHITECTURE_PRINCIPLES:
+Project axioms.
 
-{symbol}:{setup_type}:{direction}
+DECISION_LOG:
+Why decisions were made.
 
-Пример:
+MODEL_FREEZE:
+Model restrictions.
 
-LABUSDT:LONG_SQUEEZE_SETUP:SHORT
+EVOLUTION:
+Long-term product evolution.
 
----
+research/ROADMAP:
+Active research plan.
 
-# Важное правило
+research/OUTCOME_REVIEW:
+Research results.
 
-Любой новый фактор должен сначала попасть в feature snapshot.
-
-Только после накопления статистики допускается использование фактора в торговой логике.
+research/RESEARCH_NOTES:
+Hypotheses and open questions.

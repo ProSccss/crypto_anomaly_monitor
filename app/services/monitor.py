@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy.exc import IntegrityError
@@ -10,19 +10,15 @@ from app.config import Settings
 from app.db import SessionFactory
 from app.repository import Repository
 from app.services.alert_policy import AlertPolicy
+from app.services.dashboard_builder import build_dashboard
 from app.services.data_quality import DataQualityService
 from app.services.features import FeatureEngine
-from app.schemas import (
-    ContextStats,
-    DirectionStats,
-    OutcomeDashboardResponse,
-    RegimeSummary,
-    SymbolStats,
-)
 from app.services.outcome_evaluator import create_outcome_for_setup, evaluate_pending_outcomes
 from app.services.predictive import PredictiveEngine
 from app.services.scoring import SignalEngine
 from app.services.telegram import TelegramNotifier
+from app.services.telegram_commands import create_router
+from app.services.telegram_listener import run_command_listener
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +35,12 @@ class MonitorService:
         self.notifier = TelegramNotifier(settings)
         self.scheduler = AsyncIOScheduler(timezone="UTC")
         self.liquidation_task: asyncio.Task | None = None
+        self.command_task: asyncio.Task | None = None
+        # state exposed to command handlers
+        self.started_at: datetime = datetime.now(UTC)
+        self.last_poll_at: datetime | None = None
+        self.last_exception: str | None = None
+        self._command_router = create_router()
 
     async def start(self) -> None:
         self.scheduler.add_job(
@@ -72,16 +74,26 @@ class MonitorService:
         self.scheduler.start()
         await self.poll_all()
         self.liquidation_task = asyncio.create_task(self.consume_liquidations(), name="bybit-liquidations")
+        if self.notifier.bot:
+            self.command_task = asyncio.create_task(
+                run_command_listener(self.notifier.bot, self._command_router, self.settings, self),
+                name="telegram-commands",
+            )
 
     async def stop(self) -> None:
         self.scheduler.shutdown(wait=False)
-        if self.liquidation_task:
-            self.liquidation_task.cancel()
-            await asyncio.gather(self.liquidation_task, return_exceptions=True)
+        for task in (self.liquidation_task, self.command_task):
+            if task:
+                task.cancel()
+        await asyncio.gather(
+            *(t for t in (self.liquidation_task, self.command_task) if t),
+            return_exceptions=True,
+        )
         await self.client.close()
 
     async def poll_all(self) -> None:
         await asyncio.gather(*(self.poll_symbol(symbol) for symbol in self.settings.monitored_symbols))
+        self.last_poll_at = datetime.now(UTC)
 
     async def poll_symbol(self, symbol: str) -> None:
         try:
@@ -133,8 +145,11 @@ class MonitorService:
                 await session.commit()
         except IntegrityError:
             logger.warning("duplicate_snapshot", extra={"symbol": symbol})
-        except Exception:
+        except Exception as exc:
             logger.exception("poll_symbol_failed", extra={"symbol": symbol})
+            self.last_exception = (
+                f"[{datetime.now(UTC):%H:%M:%S}] {symbol}: {type(exc).__name__}: {str(exc)[:150]}"
+            )
 
     async def _run_outcome_evaluator(self) -> None:
         try:
@@ -144,73 +159,12 @@ class MonitorService:
         except Exception:
             logger.exception("outcome_evaluator_cycle_failed")
 
-    async def _run_daily_report(self) -> None:
+    async def _run_daily_report(self, for_date: date | None = None) -> None:
         try:
             async with SessionFactory() as session:
                 repo = Repository(session)
-                data = await repo.outcome_dashboard_data()
-
-            def _hit(v):
-                return round(float(v) * 100, 1) if v is not None else None
-
-            def _f(v):
-                return round(float(v), 1) if v is not None else None
-
-            regime_map: dict[str, RegimeSummary] = {}
-            for r in data["regime_rows"]:
-                regime_map[r.market_regime] = RegimeSummary(
-                    count=r.count,
-                    avg_return_4h=_f(r.avg_return_4h),
-                    avg_return_12h=_f(r.avg_return_12h),
-                    avg_mfe_4h=_f(r.avg_mfe_4h),
-                    avg_mfe_12h=_f(r.avg_mfe_12h),
-                    hit_3pct=_hit(r.hit_3pct),
-                    hit_5pct=_hit(r.hit_5pct),
-                    hit_10pct=_hit(r.hit_10pct),
-                )
-
-            context_breakdown: dict[str, dict[str, ContextStats]] = {}
-            for r in data["context_rows"]:
-                context_breakdown.setdefault(r.market_regime, {})[r.setup_context] = ContextStats(
-                    count=r.count,
-                    avg_mfe_4h=_f(r.avg_mfe_4h),
-                    hit_5pct=_hit(r.hit_5pct),
-                )
-
-            direction_breakdown: dict[str, DirectionStats] = {
-                r.setup_direction: DirectionStats(
-                    count=r.count,
-                    avg_return_4h=_f(r.avg_return_4h),
-                    avg_mfe_4h=_f(r.avg_mfe_4h),
-                    hit_3pct=_hit(r.hit_3pct),
-                    hit_5pct=_hit(r.hit_5pct),
-                    hit_10pct=_hit(r.hit_10pct),
-                )
-                for r in data["direction_rows"]
-            }
-
-            symbol_breakdown: dict[str, SymbolStats] = {
-                r.symbol: SymbolStats(
-                    count=r.count,
-                    avg_return_4h=_f(r.avg_return_4h),
-                    avg_mfe_4h=_f(r.avg_mfe_4h),
-                    hit_3pct=_hit(r.hit_3pct),
-                    hit_5pct=_hit(r.hit_5pct),
-                    hit_10pct=_hit(r.hit_10pct),
-                )
-                for r in data["symbol_rows"]
-            }
-
-            dashboard = OutcomeDashboardResponse(
-                as_of=datetime.now(UTC),
-                complete_outcomes=data["total"],
-                pre_breakout=regime_map.get("PRE_BREAKOUT"),
-                continuation=regime_map.get("CONTINUATION"),
-                context_breakdown=context_breakdown,
-                direction_breakdown=direction_breakdown,
-                symbol_breakdown=symbol_breakdown,
-            )
-
+                data = await repo.outcome_dashboard_data(for_date=for_date)
+            dashboard = build_dashboard(data)
             await self.notifier.send_daily_report(dashboard)
             logger.info("daily_outcome_report_sent", extra={"complete_outcomes": data["total"]})
         except Exception:

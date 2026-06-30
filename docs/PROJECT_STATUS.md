@@ -1,6 +1,6 @@
 # Crypto Anomaly Monitor — Project Status
 
-Last Updated: 2026-06-25
+Last Updated: 2026-06-30
 
 ## Project Snapshot
 
@@ -31,6 +31,8 @@ Outcome Collection
 * Predictive Engine V2.7
 * GitHub Repository
 * Research Documentation
+* Telegram Command Framework (V2.8): /help, /status, /health, /daily, /report, /analyze
+* Research API Layer (V2.8): ResearchService, SymbolState, GateDiagnostics, SymbolAnalysis
 
 ---
 
@@ -109,7 +111,7 @@ Outcome data is considered more valuable than new model features until sufficien
 
 
 Last Documentation Review:
-2026-06-25
+2026-06-30
 
 Documentation Status:
 CURRENT

@@ -1,8 +1,8 @@
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from uuid import UUID
 
-from sqlalchemy import case, desc, func, select
+from sqlalchemy import Date, case, cast, desc, func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -512,18 +512,21 @@ class Repository:
             "short_direction": short_row,
         }
 
-    async def outcome_dashboard_data(self) -> dict:
+    async def outcome_dashboard_data(self, for_date: date | None = None) -> dict:
         """Aggregate data for /outcome_dashboard and daily Telegram report.
 
         Filters: status <> 'pending' (includes both 'partial' and 'complete').
+        If for_date is given, restricts to outcomes whose setup was created on that UTC date.
         """
         def _hit_avg(col):
             return func.avg(case((col.is_(True), 1.0), (col.is_(False), 0.0), else_=None))
 
-        not_pending = SetupOutcome.status != "pending"
+        base_filters = [SetupOutcome.status != "pending"]
+        if for_date is not None:
+            base_filters.append(cast(SetupOutcome.setup_created_at, Date) == for_date)
 
         total = (await self.session.scalar(
-            select(func.count()).select_from(SetupOutcome).where(not_pending)
+            select(func.count()).select_from(SetupOutcome).where(*base_filters)
         )) or 0
 
         # Section 1: per market_regime
@@ -539,7 +542,7 @@ class Repository:
                 _hit_avg(SetupOutcome.hit_5pct).label("hit_5pct"),
                 _hit_avg(SetupOutcome.hit_10pct).label("hit_10pct"),
             )
-            .where(not_pending)
+            .where(*base_filters)
             .group_by(SetupOutcome.market_regime)
         )).all()
 
@@ -552,7 +555,7 @@ class Repository:
                 func.avg(SetupOutcome.mfe_4h).label("avg_mfe_4h"),
                 _hit_avg(SetupOutcome.hit_5pct).label("hit_5pct"),
             )
-            .where(not_pending)
+            .where(*base_filters)
             .group_by(SetupOutcome.market_regime, SetupOutcome.setup_context)
         )).all()
 
@@ -567,7 +570,7 @@ class Repository:
                 _hit_avg(SetupOutcome.hit_5pct).label("hit_5pct"),
                 _hit_avg(SetupOutcome.hit_10pct).label("hit_10pct"),
             )
-            .where(not_pending)
+            .where(*base_filters)
             .group_by(SetupOutcome.setup_direction)
         )).all()
 
@@ -583,7 +586,7 @@ class Repository:
                 _hit_avg(SetupOutcome.hit_10pct).label("hit_10pct"),
             )
             .join(Instrument, SetupOutcome.instrument_id == Instrument.id)
-            .where(not_pending)
+            .where(*base_filters)
             .group_by(Instrument.symbol)
             .having(func.count() >= 3)
             .order_by(desc(func.count()))

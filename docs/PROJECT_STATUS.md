@@ -23,6 +23,28 @@ Outcome Collection
 
 ---
 
+## Runtime Status
+
+Telegram Commands
+Verified
+
+Research API
+Verified
+
+Outcome Tracker
+Verified
+
+Dashboard
+Verified
+
+Docker
+Verified
+
+Current Runtime
+research/v2.8
+
+---
+
 ## Active Components
 
 * Outcome Tracking

@@ -35,3 +35,16 @@ Evidence means:
 * new business requirements.
 
 Absence of evidence is not sufficient reason to revisit a rejected decision.
+
+---
+## P-003
+
+The purpose of research is to improve trading decisions.
+
+Research itself is not a project goal.
+
+Every research result should eventually answer one of three questions:
+
+• Should we enter?
+• Should we avoid?
+• Should we manage the position differently?

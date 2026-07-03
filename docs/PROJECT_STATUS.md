@@ -42,7 +42,8 @@ Docker Deployment
 VERIFIED ✅
 
 MetricsService
-IMPLEMENTED ⏳ pending deployment
+- IMPLEMENTED ⏳ pending deployment
++ VERIFIED ✅
 
 Current Runtime
 research/v2.8

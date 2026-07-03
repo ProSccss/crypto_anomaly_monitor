@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from sqlalchemy import text
 
 from app.db import SessionFactory
+from app.services.metrics_service import MetricsSnapshot
 from app.services.telegram_commands.context import CommandContext
 
 
@@ -16,22 +17,23 @@ async def _check_db() -> tuple[str, str]:
         return "DB", f"❌ {type(exc).__name__}: {str(exc)[:60]}"
 
 
-async def _check_bybit(monitor) -> tuple[str, str]:
-    if monitor.last_poll_at is None:
+async def _check_bybit(snap: MetricsSnapshot) -> tuple[str, str]:
+    if snap.last_poll_at is None:
         return "Bybit API", "⚠️ no poll yet"
-    age = int((datetime.now(UTC) - monitor.last_poll_at).total_seconds())
-    if age > 120:
+    age = int((datetime.now(UTC) - snap.last_poll_at).total_seconds())
+    if snap.scanner_state == "stale":
         return "Bybit API", f"⚠️ stale ({age}s)"
     return "Bybit API", f"✅ OK ({age}s ago)"
 
 
 async def handle(ctx: CommandContext) -> None:
     m = ctx.monitor
+    snap = m.metrics.snapshot()
     now = datetime.now(UTC)
 
     db_result, bybit_result = await asyncio.gather(
         _check_db(),
-        _check_bybit(m),
+        _check_bybit(snap),
     )
 
     lines = ["🏥 HEALTH CHECK\n━━━━━━━━━━━━━━\n"]
@@ -53,15 +55,15 @@ async def handle(ctx: CommandContext) -> None:
         lines.append(f"{'OutcomeTracker':<14} ⚠️ job not scheduled")
 
     # Scanner
-    if m.last_poll_at:
-        age = int((now - m.last_poll_at).total_seconds())
-        ok = age <= 120
+    if snap.last_poll_at:
+        age = int((now - snap.last_poll_at).total_seconds())
+        ok = snap.scanner_state == "running"
         lines.append(f"{'Scanner':<14} {'✅ OK' if ok else '⚠️ stale'} ({age}s ago)")
     else:
         lines.append(f"{'Scanner':<14} ⚠️ no data yet")
 
     # Last exception
-    if m.last_exception:
-        lines.append(f"\nLast error:\n{m.last_exception}")
+    if snap.last_exception:
+        lines.append(f"\nLast error:\n{snap.last_exception}")
 
     await ctx.reply("\n".join(lines))

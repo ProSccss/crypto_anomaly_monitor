@@ -42,8 +42,12 @@ Docker Deployment
 VERIFIED ✅
 
 MetricsService
-- IMPLEMENTED ⏳ pending deployment
-+ VERIFIED ✅
+IMPLEMENTED ⏳ pending deployment verification
+(prior VERIFIED record was invalid — code was never committed
+due to a workspace mismatch; re-implemented 2026-07-03)
+
+/metrics Command
+IMPLEMENTED ⏳ pending deployment verification
 
 Current Runtime
 research/v2.8
@@ -61,7 +65,7 @@ ACTIVE
 * Predictive Engine V2.7
 * GitHub Repository
 * Research Documentation
-* Telegram Command Framework (V2.8): /help, /status, /health, /daily, /report, /analyze
+* Telegram Command Framework (V2.8): /help, /status, /health, /metrics, /daily, /report, /analyze
 * Research API Layer (V2.8): ResearchService, SymbolState, GateDiagnostics, SymbolAnalysis
 * MetricsService (E-1):
   Runtime observability layer,
@@ -71,11 +75,10 @@ ACTIVE
 
 ## Current Engineering Priorities
 
-1. Complete MetricsService deployment verification
-2. Implement /metrics engineering command
-3. Upgrade Health diagnostics
-4. Improve structured logging
-5. Continue Framework stabilization
+1. Complete MetricsService + /metrics deployment verification
+2. Upgrade Health diagnostics
+3. Improve structured logging
+4. Continue Framework stabilization
 
 ---
 
@@ -103,10 +106,16 @@ Focus:
 
 Current Task:
 
-E-1.2 MetricsService
+E-1.3 /metrics command
 
 Status:
 IMPLEMENTED — pending deployment verification
+
+Note:
+E-1.2 MetricsService was re-implemented together with E-1.3.
+The earlier E-1.2 implementation existed only in documentation
+(workspace mismatch — no code was ever committed), so its
+prior VERIFIED status was recorded in error.
 
 ---
 

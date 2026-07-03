@@ -22,6 +22,7 @@ class CommandRouter:
         if handler is None:
             await ctx.reply(f"Unknown command: {command}\nType /help for available commands.")
             return
+        ctx.monitor.metrics.record_command()
         try:
             await handler(ctx)
         except Exception:

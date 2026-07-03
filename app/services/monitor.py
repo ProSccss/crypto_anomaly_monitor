@@ -13,6 +13,7 @@ from app.services.alert_policy import AlertPolicy
 from app.services.dashboard_builder import build_dashboard
 from app.services.data_quality import DataQualityService
 from app.services.features import FeatureEngine
+from app.services.metrics_service import MetricsService
 from app.services.outcome_evaluator import create_outcome_for_setup, evaluate_pending_outcomes
 from app.services.predictive import PredictiveEngine
 from app.services.scoring import SignalEngine
@@ -36,10 +37,8 @@ class MonitorService:
         self.scheduler = AsyncIOScheduler(timezone="UTC")
         self.liquidation_task: asyncio.Task | None = None
         self.command_task: asyncio.Task | None = None
-        # state exposed to command handlers
-        self.started_at: datetime = datetime.now(UTC)
-        self.last_poll_at: datetime | None = None
-        self.last_exception: str | None = None
+        # runtime metrics exposed to command handlers via snapshot() (D-010)
+        self.metrics = MetricsService()
         self._command_router = create_router()
 
     async def start(self) -> None:
@@ -93,7 +92,7 @@ class MonitorService:
 
     async def poll_all(self) -> None:
         await asyncio.gather(*(self.poll_symbol(symbol) for symbol in self.settings.monitored_symbols))
-        self.last_poll_at = datetime.now(UTC)
+        self.metrics.record_poll()
 
     async def poll_symbol(self, symbol: str) -> None:
         try:
@@ -127,6 +126,8 @@ class MonitorService:
                             await create_outcome_for_setup(session, setup_event)
                             try:
                                 sent = await self.notifier.send_predictive_setup(setup)
+                                if sent:
+                                    self.metrics.record_alert()
                                 await repo.record_predictive_delivery(setup_event, "sent" if sent else "disabled")
                             except Exception:
                                 logger.exception("telegram_predictive_delivery_failed", extra={"symbol": symbol})
@@ -136,6 +137,8 @@ class MonitorService:
                     if decision.action == "send":
                         try:
                             sent = await self.notifier.send(symbol, signal)
+                            if sent:
+                                self.metrics.record_alert()
                             await repo.record_delivery(event, "sent" if sent else "disabled")
                         except Exception as exc:
                             logger.exception("telegram_delivery_failed", extra={"symbol": symbol})
@@ -147,7 +150,7 @@ class MonitorService:
             logger.warning("duplicate_snapshot", extra={"symbol": symbol})
         except Exception as exc:
             logger.exception("poll_symbol_failed", extra={"symbol": symbol})
-            self.last_exception = (
+            self.metrics.record_exception(
                 f"[{datetime.now(UTC):%H:%M:%S}] {symbol}: {type(exc).__name__}: {str(exc)[:150]}"
             )
 

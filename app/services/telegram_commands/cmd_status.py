@@ -3,8 +3,7 @@ from datetime import UTC, datetime
 from app.services.telegram_commands.context import CommandContext
 
 
-def _uptime(started_at: datetime) -> str:
-    total = int((datetime.now(UTC) - started_at).total_seconds())
+def _uptime(total: int) -> str:
     h, rem = divmod(total, 3600)
     m, s = divmod(rem, 60)
     return f"{h}h {m}m {s}s"
@@ -12,11 +11,12 @@ def _uptime(started_at: datetime) -> str:
 
 async def handle(ctx: CommandContext) -> None:
     m = ctx.monitor
+    snap = m.metrics.snapshot()
     now = datetime.now(UTC)
 
     last_poll = (
-        f"{int((now - m.last_poll_at).total_seconds())}s ago"
-        if m.last_poll_at else "n/a"
+        f"{int((now - snap.last_poll_at).total_seconds())}s ago"
+        if snap.last_poll_at else "n/a"
     )
 
     job = m.scheduler.get_job("daily_outcome_report")
@@ -28,7 +28,7 @@ async def handle(ctx: CommandContext) -> None:
     text = (
         "⚙️ SCANNER STATUS\n"
         "━━━━━━━━━━━━━━\n\n"
-        f"Uptime:       {_uptime(m.started_at)}\n"
+        f"Uptime:       {_uptime(snap.uptime_seconds)}\n"
         f"Symbols:      {len(ctx.settings.monitored_symbols)}\n"
         f"Last poll:    {last_poll}\n"
         f"Next report:  {next_report}\n"

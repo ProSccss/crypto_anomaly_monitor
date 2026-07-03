@@ -4,6 +4,30 @@ Mandatory workflow for all development work.
 
 ---
 
+## Step 0 — Environment Verification
+
+Before any development work:
+
+Verify:
+
+- repository path
+- git branch
+- latest commit
+
+Commands:
+
+git rev-parse --show-toplevel
+git branch --show-current
+git status
+
+If repository path is incorrect:
+
+STOP.
+
+Do not modify files.
+
+---
+
 # Step 1 — Documentation Review
 
 Before proposing any code changes, review:

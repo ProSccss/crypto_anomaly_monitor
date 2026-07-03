@@ -240,3 +240,45 @@ new decision record.
 Reference:
 
 D-008, MODEL_FREEZE_V27.md
+
+---
+
+# D-010
+
+Title:
+MetricsService Runtime Observability Layer
+
+Status:
+ACTIVE
+
+Reason:
+
+Runtime metrics were distributed across MonitorService,
+Telegram handlers and future infrastructure consumers.
+
+This created a risk of duplicated counters and inconsistent
+diagnostics between /health, /metrics, REST API and monitoring tools.
+
+Outcome:
+
+MetricsService becomes the single source of runtime engineering metrics.
+
+Rules:
+
+* Services record events.
+* MetricsService owns runtime state.
+* Consumers read MetricsSnapshot only.
+* No component accesses internal counters directly.
+* Metrics are runtime only.
+* No database persistence.
+
+Allowed consumers:
+
+* Telegram Engineering commands
+* REST API
+* Web UI
+* Monitoring exporters
+
+Reference:
+
+OBSERVABILITY.md

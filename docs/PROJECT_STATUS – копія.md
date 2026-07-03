@@ -1,11 +1,10 @@
 # Crypto Anomaly Monitor — Project Status
 
-Last Updated: 2026-07-03
+Last Updated: 2026-06-30
 
 ## Project Snapshot
 
-Version:
-V2.8 Engineering Sprint E-1
+Version: V2.7.1
 
 Branch:
 research/v2.8
@@ -41,9 +40,6 @@ VERIFIED ✅
 Docker Deployment
 VERIFIED ✅
 
-MetricsService
-IMPLEMENTED ⏳ pending deployment
-
 Current Runtime
 research/v2.8
 
@@ -62,50 +58,17 @@ ACTIVE
 * Research Documentation
 * Telegram Command Framework (V2.8): /help, /status, /health, /daily, /report, /analyze
 * Research API Layer (V2.8): ResearchService, SymbolState, GateDiagnostics, SymbolAnalysis
-* MetricsService (E-1):
-  Runtime observability layer,
-  MetricsSnapshot provider for /health, /metrics and future monitoring
 
 ---
 
-## Current Engineering Priorities
+## Current Priorities
 
-1. Complete MetricsService deployment verification
-2. Implement /metrics engineering command
-3. Upgrade Health diagnostics
-4. Improve structured logging
-5. Continue Framework stabilization
-
----
-
-## Next Research Priorities
-
-1. Improve Telegram Research UX
+1. Improve Telegram Research Console UX
 2. Implement /why
 3. Implement /compare
 4. Implement /topscan
-5. Continue outcome analysis
-
----
-
-## Engineering Sprint
-
-Current Sprint:
-E-1 Platform Stabilization
-
-Focus:
-
-* Observability
-* Diagnostics
-* Reliability
-* Maintainability
-
-Current Task:
-
-E-1.2 MetricsService
-
-Status:
-IMPLEMENTED — pending deployment verification
+5. Continue outcome collection
+6. Research PRE_BREAKOUT + RANGE_COMPRESSION
 
 ---
 
@@ -165,12 +128,10 @@ TBD (outcome-driven)
 
 ## Notes
 
-Engineering platform foundation is stable.
+Engineering platform is considered stable.
 
-Current Engineering focus:
-increase reliability, observability and maintainability.
-
-Research development continues after Engineering stabilization milestones.
+Current focus shifts from infrastructure development
+to research tooling and practical trading insights.
 
 Primary objective:
 
@@ -180,7 +141,7 @@ actionable information for traders.
 ---
 
 Last Documentation Review:
-2026-07-03
+2026-06-30
 
 Documentation Status:
 CURRENT

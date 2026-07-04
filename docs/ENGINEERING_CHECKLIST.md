@@ -1,3 +1,18 @@
+# Verification Rule
+
+Before marking any component VERIFIED:
+
+- implementation exists in git
+- deployed container tested
+- user-facing command/API tested
+
+Reason:
+Prevent repeat of documentation/code mismatch
+(E-1.2 was recorded as VERIFIED while no implementation
+had ever been committed).
+
+---
+
 # Telegram Command Framework
 
 ## Architecture
@@ -39,6 +54,8 @@
 ☑ /status
 
 ☑ /health
+
+☑ /metrics
 
 ☑ /daily
 

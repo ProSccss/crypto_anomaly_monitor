@@ -1,6 +1,6 @@
 # Crypto Anomaly Monitor — Project Status
 
-Last Updated: 2026-07-03
+Last Updated: 2026-07-05
 
 ## Project Snapshot
 
@@ -42,12 +42,12 @@ Docker Deployment
 VERIFIED ✅
 
 MetricsService
-IMPLEMENTED ⏳ pending deployment verification
-(prior VERIFIED record was invalid — code was never committed
-due to a workspace mismatch; re-implemented 2026-07-03)
+VERIFIED ✅ (deployment verification 2026-07-05)
+(re-implemented 2026-07-03 after workspace mismatch —
+an earlier VERIFIED record predated any committed code)
 
 /metrics Command
-IMPLEMENTED ⏳ pending deployment verification
+VERIFIED ✅ (deployment verification 2026-07-05)
 
 Current Runtime
 research/v2.8
@@ -75,10 +75,9 @@ ACTIVE
 
 ## Current Engineering Priorities
 
-1. Complete MetricsService + /metrics deployment verification
-2. Upgrade Health diagnostics
-3. Improve structured logging
-4. Continue Framework stabilization
+1. Upgrade Health diagnostics
+2. Improve structured logging
+3. Continue Framework stabilization
 
 ---
 
@@ -109,7 +108,8 @@ Current Task:
 E-1.3 /metrics command
 
 Status:
-IMPLEMENTED — pending deployment verification
+VERIFIED — deployment verification passed 2026-07-05
+(/metrics, /status, /health all PASS in deployed container)
 
 Note:
 E-1.2 MetricsService was re-implemented together with E-1.3.
@@ -190,7 +190,7 @@ actionable information for traders.
 ---
 
 Last Documentation Review:
-2026-07-03
+2026-07-05
 
 Documentation Status:
 CURRENT

@@ -26,6 +26,8 @@ After every deployment verify the following.
 
 □ /health
 
+□ /metrics
+
 □ /daily
 
 □ /report YYYY-MM-DD

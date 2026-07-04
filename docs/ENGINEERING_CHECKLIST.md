@@ -13,6 +13,44 @@ had ever been committed).
 
 ---
 
+# Operational Checks
+
+Lessons from Sprint E-1.
+
+## Session Start (workspace mismatch)
+
+□ git rev-parse --show-toplevel matches the canonical path
+  (LOCAL_ENVIRONMENT.md)
+
+□ git branch --show-current matches the expected branch
+
+□ HEAD commit matches expectations
+
+□ git status reviewed before starting new work
+
+## Documentation / Code Consistency
+
+□ every status claim in docs is backed by a commit in git
+
+□ status changes reference the verification evidence
+  (date, deployed revision, commands tested)
+
+□ before relying on a documented component, confirm the
+  code actually exists on the current branch
+
+## Git Health (object locking)
+
+□ repository directory is not managed by cloud sync
+  (.git must never be synced — LOCAL_ENVIRONMENT.md)
+
+□ on "unable to write object" / permission denied under
+  .git/objects: retry first, then check antivirus locking
+
+□ after any failed git operation, re-run git status and
+  git log to confirm repository integrity
+
+---
+
 # Telegram Command Framework
 
 ## Architecture

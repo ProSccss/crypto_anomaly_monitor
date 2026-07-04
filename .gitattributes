@@ -1,0 +1,34 @@
+# Normalize all text files to LF in both the repository and the working tree.
+#
+# The project is developed on Windows but built and deployed in Linux
+# containers. LF everywhere keeps Docker builds byte-identical, keeps any
+# shell scripts executable inside containers, and eliminates the
+# core.autocrlf "LF will be replaced by CRLF" warnings.
+#
+# All currently tracked files are already LF in the index, so introducing
+# these rules does not rewrite existing content.
+
+* text=auto eol=lf
+
+# Source and configuration
+*.py    text eol=lf
+*.md    text eol=lf
+*.toml  text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.json  text eol=lf
+*.sql   text eol=lf
+*.mako  text eol=lf
+*.txt   text eol=lf
+*.sh    text eol=lf
+
+Dockerfile     text eol=lf
+.dockerignore  text eol=lf
+.gitignore     text eol=lf
+.gitattributes text eol=lf
+.env.example   text eol=lf
+
+# Windows-only scripts keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf

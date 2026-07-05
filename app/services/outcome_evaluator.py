@@ -97,6 +97,47 @@ async def _candles_in_window(
     )
 
 
+# ---------------------------------------------------------------------------
+# IVS-1.3 passive measurements — labels, not inputs.
+# Computed within the setup→4h window (same basis as hit flags).
+# NEUTRAL follows the existing _mfe_mae convention (treated as SHORT).
+# ---------------------------------------------------------------------------
+
+
+def _peak_index(candles: list[CandleModel], direction: str) -> int:
+    """Index of the maximum favorable excursion candle."""
+    if direction == "LONG":
+        return max(range(len(candles)), key=lambda i: float(candles[i].high))
+    return min(range(len(candles)), key=lambda i: float(candles[i].low))
+
+
+def _time_to_peak(candles: list[CandleModel], direction: str, setup_ts: datetime) -> int | None:
+    """Minutes from setup creation to the maximum favorable excursion."""
+    if not candles:
+        return None
+    peak_ts = candles[_peak_index(candles, direction)].bucket_ts
+    return max(1, int((peak_ts - setup_ts).total_seconds() / 60))
+
+
+def _max_drawdown(candles: list[CandleModel], direction: str) -> Decimal | None:
+    """Largest % retracement of the favorable move after (and within) its
+    peak candle. Distinct from MAE, which measures adverse-from-entry."""
+    if not candles:
+        return None
+    idx = _peak_index(candles, direction)
+    if direction == "LONG":
+        peak = float(candles[idx].high)
+        if peak <= 0:
+            return None
+        dd = (peak - min(float(c.low) for c in candles[idx:])) / peak * 100
+    else:
+        trough = float(candles[idx].low)
+        if trough <= 0:
+            return None
+        dd = (max(float(c.high) for c in candles[idx:]) - trough) / trough * 100
+    return Decimal(str(round(max(dd, 0.0), 4)))
+
+
 def _time_to_hit(
     candles: list[CandleModel],
     entry: Decimal,
@@ -197,6 +238,14 @@ async def _evaluate_one(session: AsyncSession, outcome: SetupOutcome, now: datet
                 updates["time_to_hit_5pct"] = _time_to_hit(candles, entry, direction, 5.0, setup_ts) if hit_5 else None
                 updates["time_to_hit_10pct"] = _time_to_hit(candles, entry, direction, 10.0, setup_ts) if hit_10 else None
 
+            # IVS-1.3 passive measurements — isolated so a failure here can
+            # never block the existing metric fills above.
+            try:
+                updates["time_to_peak_minutes"] = _time_to_peak(candles, direction, setup_ts)
+                updates["max_drawdown"] = _max_drawdown(candles, direction)
+            except Exception:
+                logger.exception("ivs_passive_metrics_failed", extra={"setup_id": str(outcome.setup_id)})
+
     # apply in-memory updates
     for field, value in updates.items():
         setattr(outcome, field, value)
@@ -208,6 +257,8 @@ async def _evaluate_one(session: AsyncSession, outcome: SetupOutcome, now: datet
     if filled_hours == len(HORIZONS):
         outcome.status = "complete"
         outcome.resolved_at = now
+        # IVS-1.3: actual observed evaluation window (passive measurement)
+        outcome.evaluation_duration_minutes = int((now - setup_ts).total_seconds() / 60)
     elif filled_hours > 0 or outcome.entry_price is not None:
         outcome.status = "partial"
 

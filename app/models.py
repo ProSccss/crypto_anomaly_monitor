@@ -241,6 +241,11 @@ class SetupOutcome(Base):
     time_to_hit_5pct: Mapped[int | None] = mapped_column(Integer, nullable=True)
     time_to_hit_10pct: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
+    # IVS-1.3 passive measurement expansion (4h window; labels, not inputs)
+    time_to_peak_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    max_drawdown: Mapped[Decimal | None] = mapped_column(Numeric(10, 4), nullable=True)
+    evaluation_duration_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
     # Manual research annotations (IVS-1.2) — passive storage only.
     # Written by research tooling via Repository.update_research_labels();
     # never read by scanner, evaluator, alerts, or scoring. NULL = unlabeled.

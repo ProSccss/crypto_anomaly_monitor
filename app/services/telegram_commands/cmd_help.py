@@ -10,6 +10,7 @@ _COMMANDS = [
     ("/daily",              "Generate today's outcome report"),
     ("/report YYYY-MM-DD",  "Outcome report for a specific date"),
     ("/analyze SYMBOL",     "Real-time research analysis for a symbol"),
+    ("/why SYMBOL",         "Explain setup drivers"),
 ]
 
 _KEYBOARD = InlineKeyboardMarkup([

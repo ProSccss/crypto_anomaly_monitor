@@ -69,6 +69,11 @@ deployment verification 2026-07-05
 gate limiting diagnostics all PASS in deployed container;
 /compare regression via shared formatting PASS)
 
+Research Export Layer (IVS-1.4)
+IMPLEMENTED ⏳ pending deployment verification
+(ResearchExportService: read-only CSV/JSON dataset export —
+setups, outcomes, IVS fields, research labels; no analytics)
+
 Outcome Dataset Expansion (IVS-1.3)
 IMPLEMENTED + DEPLOYED ⏳
 WAITING FOR FIRST POST-IVS-1.3 COMPLETED OUTCOME
@@ -162,6 +167,17 @@ Repository.update_research_labels — never read by
 scanner, evaluator, alerts, or scoring)
 
 Current Task:
+
+IVS-1.4 Research Export Layer
+
+Status:
+IMPLEMENTED — pending deployment verification
+(app/services/research_export.py: ResearchExportService,
+read-only join of setups ⋈ outcomes ⋈ instruments via
+Repository.research_dataset(); JSON and CSV serialization;
+NULLs preserved, labels untransformed, no model imports)
+
+Pending Verification:
 
 IVS-1.3 Outcome Dataset Expansion
 

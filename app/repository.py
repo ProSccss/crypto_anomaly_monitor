@@ -603,6 +603,24 @@ class Repository:
         }
 
     # ------------------------------------------------------------------
+    # Research export (IVS-1.4) — read-only, no filtering, no aggregation
+    # ------------------------------------------------------------------
+
+    async def research_dataset(self) -> list[tuple[SetupOutcome, PredictiveSetupModel, Instrument]]:
+        """Full research dataset for ResearchExportService, oldest first.
+
+        Explicit joins (no ORM relationships exist between these models):
+        every outcome row is guaranteed a setup and an instrument by FK.
+        """
+        rows = await self.session.execute(
+            select(SetupOutcome, PredictiveSetupModel, Instrument)
+            .join(PredictiveSetupModel, SetupOutcome.setup_id == PredictiveSetupModel.id)
+            .join(Instrument, SetupOutcome.instrument_id == Instrument.id)
+            .order_by(PredictiveSetupModel.created_at)
+        )
+        return [(o, s, i) for o, s, i in rows.all()]
+
+    # ------------------------------------------------------------------
     # Research labels (IVS-1.2) — passive storage only, no interpretation
     # ------------------------------------------------------------------
 

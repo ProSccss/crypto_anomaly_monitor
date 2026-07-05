@@ -69,9 +69,12 @@ deployment verification 2026-07-05
 gate limiting diagnostics all PASS in deployed container;
 /compare regression via shared formatting PASS)
 
-Research Labels Storage (IVS-1.2)
-IMPLEMENTED ⏳ pending deployment verification
-(migration 0011 + repository helper, passive storage only)
+Manual Research Labels (IVS-1.2)
+VERIFIED ✅
+deployment verification 2026-07-05
+(commit 306e710; docker build + container restart PASS;
+alembic 0010→0011 applied — research_labels column on
+setup_outcomes; passive storage only)
 
 Model Version Tracking (IVS-1.1)
 VERIFIED ✅
@@ -142,17 +145,15 @@ IVS-1.0 Current Data Model Audit — ACCEPTED
 IVS-1.1 CAM model identity tracking — VERIFIED 2026-07-05
 (residual check: first new setup should show
 model_version = "CAM_V2.7_FREEZE")
-
-Current Task:
-
-IVS-1.2 Manual Research Labels storage
-
-Status:
-IMPLEMENTED — pending deployment verification
+IVS-1.2 Manual Research Labels storage — VERIFIED 2026-07-05
 (setup_outcomes.research_labels JSONB, migration 0011;
 NULL = unlabeled, no backfill; written only via
 Repository.update_research_labels — never read by
 scanner, evaluator, alerts, or scoring)
+
+Current Task:
+
+(next IVS task not yet started)
 
 Previous Sprint:
 E-1 Platform Stabilization — COMPLETE, all components VERIFIED

@@ -7,6 +7,7 @@ from app.services.telegram_commands import (
     cmd_metrics,
     cmd_report,
     cmd_status,
+    cmd_topscan,
     cmd_why,
 )
 from app.services.telegram_commands.router import CommandRouter
@@ -23,4 +24,5 @@ def create_router() -> CommandRouter:
     router.register("/analyze", cmd_analyze.handle)
     router.register("/why",     cmd_why.handle)
     router.register("/compare", cmd_compare.handle)
+    router.register("/topscan", cmd_topscan.handle)
     return router

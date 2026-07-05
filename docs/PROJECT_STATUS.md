@@ -58,6 +58,9 @@ no-data state all PASS in deployed container)
 /compare Command
 IMPLEMENTED ⏳ pending deployment verification
 
+/topscan Command
+IMPLEMENTED ⏳ pending deployment verification
+
 Current Runtime
 research/v2.8
 
@@ -74,11 +77,12 @@ ACTIVE
 * Predictive Engine V2.7
 * GitHub Repository
 * Research Documentation
-* Telegram Command Framework (V2.8): /help, /status, /health, /metrics, /daily, /report, /analyze, /why, /compare
+* Telegram Command Framework (V2.8): /help, /status, /health, /metrics, /daily, /report, /analyze, /why, /compare, /topscan
 * Research Console commands (V2.8):
   /analyze SYMBOL — real-time research analysis
   /why SYMBOL — explain setup drivers
   /compare SYMBOL SYMBOL [...] — compare symbols side by side
+  /topscan — market radar over monitored symbols
 * Research API Layer (V2.8): ResearchService, SymbolState, GateDiagnostics, SymbolAnalysis
 * MetricsService (E-1):
   Runtime observability layer,
@@ -97,8 +101,7 @@ ACTIVE
 ## Next Research Priorities
 
 1. Improve Telegram Research UX
-2. Implement /topscan
-3. Continue outcome analysis
+2. Continue outcome analysis
 
 ---
 

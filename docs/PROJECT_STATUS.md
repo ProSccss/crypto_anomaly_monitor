@@ -55,6 +55,9 @@ deployment verification 2026-07-05
 (commit 2e803bb; /help, /why LABUSDT, /why BTCUSDT
 no-data state all PASS in deployed container)
 
+/compare Command
+IMPLEMENTED ⏳ pending deployment verification
+
 Current Runtime
 research/v2.8
 
@@ -71,10 +74,11 @@ ACTIVE
 * Predictive Engine V2.7
 * GitHub Repository
 * Research Documentation
-* Telegram Command Framework (V2.8): /help, /status, /health, /metrics, /daily, /report, /analyze, /why
+* Telegram Command Framework (V2.8): /help, /status, /health, /metrics, /daily, /report, /analyze, /why, /compare
 * Research Console commands (V2.8):
   /analyze SYMBOL — real-time research analysis
   /why SYMBOL — explain setup drivers
+  /compare SYMBOL SYMBOL [...] — compare symbols side by side
 * Research API Layer (V2.8): ResearchService, SymbolState, GateDiagnostics, SymbolAnalysis
 * MetricsService (E-1):
   Runtime observability layer,
@@ -93,9 +97,8 @@ ACTIVE
 ## Next Research Priorities
 
 1. Improve Telegram Research UX
-2. Implement /compare
-3. Implement /topscan
-4. Continue outcome analysis
+2. Implement /topscan
+3. Continue outcome analysis
 
 ---
 

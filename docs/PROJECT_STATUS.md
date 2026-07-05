@@ -70,8 +70,11 @@ gate limiting diagnostics all PASS in deployed container;
 /compare regression via shared formatting PASS)
 
 Model Version Tracking (IVS-1.1)
-IMPLEMENTED ⏳ pending deployment verification
-(migration 0010 + write-path stamping)
+VERIFIED ✅
+deployment verification 2026-07-05
+(commit 7a82279; alembic 0009→0010 applied, both
+model_version columns present, application startup,
+scheduler and scanner PASS in deployed container)
 
 Current Runtime
 research/v2.8
@@ -138,10 +141,15 @@ Current Task:
 IVS-1.1 CAM model identity tracking
 
 Status:
-IMPLEMENTED — pending deployment verification
+VERIFIED — deployment verification passed 2026-07-05
 (model_version = "CAM_V2.7_FREEZE" stamped on new
 predictive_setups and setup_outcomes; migration 0010;
 NULL = pre-tracking rows, no backfill)
+
+Residual check:
+First new setup after deployment should show
+model_version = "CAM_V2.7_FREEZE" (confirm via SQL or
+export when the next setup fires).
 
 Previous Sprint:
 E-1 Platform Stabilization — COMPLETE, all components VERIFIED

@@ -50,7 +50,10 @@ an earlier VERIFIED record predated any committed code)
 VERIFIED ✅ (deployment verification 2026-07-05)
 
 /why Command
-IMPLEMENTED ⏳ pending deployment verification
+VERIFIED ✅
+deployment verification 2026-07-05
+(commit 2e803bb; /help, /why LABUSDT, /why BTCUSDT
+no-data state all PASS in deployed container)
 
 Current Runtime
 research/v2.8

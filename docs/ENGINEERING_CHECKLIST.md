@@ -101,6 +101,8 @@ Lessons from Sprint E-1.
 
 ☑ /analyze
 
+☑ /why
+
 --- 
 
 # Telegram Listener

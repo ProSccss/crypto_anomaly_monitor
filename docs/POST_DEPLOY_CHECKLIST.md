@@ -34,6 +34,8 @@ After every deployment verify the following.
 
 □ /analyze LABUSDT
 
+□ /why LABUSDT
+
 ---
 
 ## Scanner

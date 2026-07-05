@@ -70,9 +70,14 @@ gate limiting diagnostics all PASS in deployed container;
 /compare regression via shared formatting PASS)
 
 Outcome Dataset Expansion (IVS-1.3)
-IMPLEMENTED ⏳ pending deployment verification
-(migration 0012: time_to_peak_minutes, max_drawdown,
-evaluation_duration_minutes — passive measurements only)
+IMPLEMENTED + DEPLOYED ⏳
+WAITING FOR FIRST POST-IVS-1.3 COMPLETED OUTCOME
+(commit a383ed8; docker build + container restart PASS;
+migration 0011→0012 applied and schema verified;
+existing MFE/MAE data confirmed intact in production;
+new passive fields: time_to_peak_minutes, max_drawdown,
+evaluation_duration_minutes — full VERIFIED pending the
+first completed outcome populating them)
 
 Manual Research Labels (IVS-1.2)
 VERIFIED ✅
@@ -161,11 +166,22 @@ Current Task:
 IVS-1.3 Outcome Dataset Expansion
 
 Status:
-IMPLEMENTED — pending deployment verification
-(three new passive fields on setup_outcomes via migration
-0012; mfe_1h/4h + mae_1h/4h from the IVS-1.3 spec already
-existed since migration 0005 and were not re-added;
-existing metric formulas unchanged and pinned by tests)
+IMPLEMENTED + DEPLOYED — waiting for first post-IVS-1.3
+completed outcome before marking VERIFIED
+(deployment 2026-07-05, commit a383ed8: migration
+0011→0012 applied, schema PASS, existing outcome query
+PASS — MFE/MAE data intact; three new passive fields on
+setup_outcomes; mfe_1h/4h + mae_1h/4h from the IVS-1.3
+spec already existed since migration 0005 and were not
+re-added; existing metric formulas unchanged and pinned
+by tests)
+
+Verification gate:
+First outcome completing after deployment must show
+time_to_peak_minutes, max_drawdown and
+evaluation_duration_minutes populated, with existing
+metrics unchanged. Outcomes complete ~12h after setup
+creation — check after the next setup fires.
 
 Previous Sprint:
 E-1 Platform Stabilization — COMPLETE, all components VERIFIED

@@ -182,6 +182,8 @@ class PredictiveSetupModel(Base):
     market_regime: Mapped[str] = mapped_column(String(32), default="PRE_BREAKOUT")
     # TREND_COMPRESSION | RANGE_COMPRESSION | UNKNOWN  (analytics tag, not gate logic)
     setup_context: Mapped[str] = mapped_column(String(32), default="UNKNOWN")
+    # CAM model identity (IVS-1.1); NULL = row predates version tracking
+    model_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
     status: Mapped[str] = mapped_column(String(16), default="OPEN")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     notified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -207,6 +209,8 @@ class SetupOutcome(Base):
     market_regime: Mapped[str] = mapped_column(String(32), default="PRE_BREAKOUT")
     # Denormalized from predictive_setups.setup_context for analytics without JOIN
     setup_context: Mapped[str] = mapped_column(String(32), default="UNKNOWN")
+    # CAM model identity, copied from the setup (IVS-1.1); NULL = pre-tracking
+    model_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
     # prices
     entry_price: Mapped[Decimal | None] = mapped_column(Numeric(20, 8), nullable=True)

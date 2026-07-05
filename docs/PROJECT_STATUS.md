@@ -69,6 +69,10 @@ deployment verification 2026-07-05
 gate limiting diagnostics all PASS in deployed container;
 /compare regression via shared formatting PASS)
 
+Model Version Tracking (IVS-1.1)
+IMPLEMENTED ⏳ pending deployment verification
+(migration 0010 + write-path stamping)
+
 Current Runtime
 research/v2.8
 
@@ -116,24 +120,33 @@ ACTIVE
 ## Engineering Sprint
 
 Current Sprint:
-E-1 Platform Stabilization
+IVS — Intelligence Validation Sprint
 
 Focus:
 
-* Observability
-* Diagnostics
-* Reliability
-* Maintainability
+* Model identity tracking
+* Outcome validation infrastructure
+* Research labeling
+* Research export
+
+Completed:
+
+IVS-1.0 Current Data Model Audit — ACCEPTED
 
 Current Task:
 
-E-1.3 /metrics command
+IVS-1.1 CAM model identity tracking
 
 Status:
-VERIFIED — deployment verification passed 2026-07-05
-(/metrics, /status, /health all PASS in deployed container)
+IMPLEMENTED — pending deployment verification
+(model_version = "CAM_V2.7_FREEZE" stamped on new
+predictive_setups and setup_outcomes; migration 0010;
+NULL = pre-tracking rows, no backfill)
 
-Note:
+Previous Sprint:
+E-1 Platform Stabilization — COMPLETE, all components VERIFIED
+
+Note (E-1 history):
 E-1.2 MetricsService was re-implemented together with E-1.3.
 The earlier E-1.2 implementation existed only in documentation
 (workspace mismatch — no code was ever committed), so its

@@ -229,6 +229,7 @@ async def create_outcome_for_setup(session: AsyncSession, setup: PredictiveSetup
         setup_version=SETUP_VERSION,
         market_regime=setup.market_regime,
         setup_context=setup.setup_context,
+        model_version=setup.model_version,
         status="pending",
         created_at=datetime.now(UTC),
     ).on_conflict_do_nothing(index_elements=["setup_id"])

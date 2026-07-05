@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from app.domain import Candle, FeatureSnapshot, Liquidation, PredictiveSetup, Signal, Snapshot
+from app.model_version import CAM_MODEL_VERSION
 from app.models import (
     AlertDelivery,
     CandleModel,
@@ -292,6 +293,7 @@ class Repository:
             components=item.components,
             market_regime=item.market_regime,
             setup_context=item.setup_context,
+            model_version=CAM_MODEL_VERSION,
             status=item.status,
             created_at=item.ts,
         )

@@ -602,6 +602,33 @@ class Repository:
             "symbol_rows": symbol_rows,
         }
 
+    # ------------------------------------------------------------------
+    # Research labels (IVS-1.2) — passive storage only, no interpretation
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def default_research_labels() -> dict:
+        """Canonical label structure. Returns a fresh dict each call."""
+        return {
+            "scenario": None,
+            "lifecycle_phase": None,
+            "reversal_candidate": False,
+            "notes": "",
+        }
+
+    async def update_research_labels(self, outcome_id: UUID, labels: dict) -> bool:
+        """Store research labels on an outcome. Storage only — no validation
+        of label semantics, no interpretation, no effect on any calculation.
+
+        Partial input is normalized onto the canonical structure so every
+        stored value has the full key set. Returns False if outcome not found.
+        """
+        outcome = await self.session.get(SetupOutcome, outcome_id)
+        if outcome is None:
+            return False
+        outcome.research_labels = {**self.default_research_labels(), **labels}
+        return True
+
     @staticmethod
     def _decimal(value: float | int | Decimal) -> Decimal:
         return Decimal(str(round(float(value), 8)))

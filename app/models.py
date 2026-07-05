@@ -241,6 +241,11 @@ class SetupOutcome(Base):
     time_to_hit_5pct: Mapped[int | None] = mapped_column(Integer, nullable=True)
     time_to_hit_10pct: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
+    # Manual research annotations (IVS-1.2) — passive storage only.
+    # Written by research tooling via Repository.update_research_labels();
+    # never read by scanner, evaluator, alerts, or scoring. NULL = unlabeled.
+    research_labels: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+
     # status tracking
     status: Mapped[str] = mapped_column(String(16), default="pending")
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

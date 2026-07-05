@@ -103,6 +103,10 @@ Lessons from Sprint E-1.
 
 ☑ /why
 
+☑ /compare
+
+☑ /topscan
+
 --- 
 
 # Telegram Listener

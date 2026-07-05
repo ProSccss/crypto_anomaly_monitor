@@ -36,6 +36,10 @@ After every deployment verify the following.
 
 □ /why LABUSDT
 
+□ /compare LABUSDT HUSDT
+
+□ /topscan
+
 ---
 
 ## Scanner

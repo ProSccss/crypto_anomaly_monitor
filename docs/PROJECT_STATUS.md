@@ -56,10 +56,18 @@ deployment verification 2026-07-05
 no-data state all PASS in deployed container)
 
 /compare Command
-IMPLEMENTED ⏳ pending deployment verification
+VERIFIED ✅
+deployment verification 2026-07-05
+(commits cdfe642 + da8e1ac; multi-symbol comparison,
+no-data handling, usage guard, shared formatting
+regression all PASS in deployed container)
 
 /topscan Command
-IMPLEMENTED ⏳ pending deployment verification
+VERIFIED ✅
+deployment verification 2026-07-05
+(commit da8e1ac; /help visibility, 21-symbol radar,
+gate limiting diagnostics all PASS in deployed container;
+/compare regression via shared formatting PASS)
 
 Current Runtime
 research/v2.8

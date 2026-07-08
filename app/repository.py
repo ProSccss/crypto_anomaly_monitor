@@ -621,6 +621,45 @@ class Repository:
         return [(o, s, i) for o, s, i in rows.all()]
 
     # ------------------------------------------------------------------
+    # Lifecycle replay (IVS-2.1) — read-only full-history load
+    # ------------------------------------------------------------------
+
+    async def lifecycle_replay_data(self, symbol: str) -> dict:
+        """Full stored history for LifecycleReplayExportService.
+
+        Read-only; every series ascending. Empty lists for unknown symbols.
+        """
+        empty = {"candles": [], "snapshots": [], "liquidations": [], "features": [], "setups": []}
+        instrument = await self.session.scalar(
+            select(Instrument).where(Instrument.exchange == "bybit", Instrument.symbol == symbol)
+        )
+        if instrument is None:
+            return empty
+        iid = instrument.id
+        return {
+            "candles": list(await self.session.scalars(
+                select(CandleModel)
+                .where(CandleModel.instrument_id == iid, CandleModel.interval == "1")
+                .order_by(CandleModel.bucket_ts))),
+            "snapshots": list(await self.session.scalars(
+                select(MarketSnapshot)
+                .where(MarketSnapshot.instrument_id == iid)
+                .order_by(MarketSnapshot.ts))),
+            "liquidations": list(await self.session.scalars(
+                select(LiquidationEvent)
+                .where(LiquidationEvent.instrument_id == iid)
+                .order_by(LiquidationEvent.event_ts))),
+            "features": list(await self.session.scalars(
+                select(FeatureSnapshotModel)
+                .where(FeatureSnapshotModel.instrument_id == iid)
+                .order_by(FeatureSnapshotModel.bucket_ts))),
+            "setups": list(await self.session.scalars(
+                select(PredictiveSetupModel)
+                .where(PredictiveSetupModel.instrument_id == iid)
+                .order_by(PredictiveSetupModel.created_at))),
+        }
+
+    # ------------------------------------------------------------------
     # Research labels (IVS-1.2) — passive storage only, no interpretation
     # ------------------------------------------------------------------
 

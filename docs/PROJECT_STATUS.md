@@ -69,6 +69,13 @@ deployment verification 2026-07-05
 gate limiting diagnostics all PASS in deployed container;
 /compare regression via shared formatting PASS)
 
+Lifecycle Replay Dataset (IVS-2.1)
+IMPLEMENTED ⏳ pending deployment verification
+(lifecycle_replay_export.py + scripts/export_research.py:
+chronological per-minute replay CSV — OHLCV, price features,
+EMA research grid, derivatives, stored CAM state, future
+behaviour windows, empty research labels; read-only)
+
 Research Export Layer (IVS-1.4)
 VERIFIED ✅
 deployment verification 2026-07-05
@@ -176,7 +183,15 @@ bytes, full 23-column schema verified)
 
 Current Task:
 
-(next IVS task not yet started)
+IVS-2.1 Coin Lifecycle Replay Dataset Infrastructure
+
+Status:
+IMPLEMENTED — pending deployment verification
+(read-only replay export: one row per stored 1m candle;
+microcap EMA research grid 60/120/180/240 × 1m/3m/5m —
+UNVALIDATED hypothesis, export only; future behaviour
+windows 15m–24h; CLI scripts/export_research.py; dataset
+documented in docs/RESEARCH_DATASET.md)
 
 Pending Verification:
 

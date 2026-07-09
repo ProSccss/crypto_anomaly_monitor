@@ -69,8 +69,18 @@ deployment verification 2026-07-05
 gate limiting diagnostics all PASS in deployed container;
 /compare regression via shared formatting PASS)
 
+Lifecycle Research Tooling (IVS-2.2)
+IMPLEMENTED ⏳ pending deployment verification
+(scripts/research/: event finder, blind snapshot viewer,
+blind replay with manual annotation + reveal gate,
+counter-move statistics, EMA grid statistics — CSV tooling
+only, no app imports)
+
 Lifecycle Replay Dataset (IVS-2.1)
 IMPLEMENTED ⏳ pending deployment verification
+(note: HQ brief for IVS-2.2 reports the LABUSDT export
+produced in production, ~28k rows × 112 columns; formal
+verification record still pending)
 (lifecycle_replay_export.py + scripts/export_research.py:
 chronological per-minute replay CSV — OHLCV, price features,
 EMA research grid, derivatives, stored CAM state, future
@@ -183,15 +193,24 @@ bytes, full 23-column schema verified)
 
 Current Task:
 
-IVS-2.1 Coin Lifecycle Replay Dataset Infrastructure
+IVS-2.2 Lifecycle Research Tooling
+(Blind Replay & Event Navigation)
 
 Status:
 IMPLEMENTED — pending deployment verification
-(read-only replay export: one row per stored 1m candle;
-microcap EMA research grid 60/120/180/240 × 1m/3m/5m —
-UNVALIDATED hypothesis, export only; future behaviour
-windows 15m–24h; CLI scripts/export_research.py; dataset
-documented in docs/RESEARCH_DATASET.md)
+(scripts/research/: research_events, snapshot, replay,
+counter_moves, ema_research; blind views are whitelist-
+rendered — outcome fields visible only via reveal after
+manual annotation; lifecycle labels restricted to the
+8-value vocabulary, never auto-assigned; annotations
+append to research_annotations.csv)
+
+Recently completed:
+
+IVS-2.1 Lifecycle Replay Dataset Infrastructure
+(commit d7c5eb5; per HQ brief the production export ran:
+LABUSDT_replay.csv ~28k rows × 112 columns; formal
+deployment verification record pending)
 
 Pending Verification:
 

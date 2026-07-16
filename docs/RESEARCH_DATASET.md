@@ -108,10 +108,15 @@ would understate extremes).
 
 ## Limitations
 
-- Coverage starts when CAM began polling the symbol; no pre-monitoring
-  backfill exists.
-- 1m candles come from repeated 240-candle poll fetches; brief collector
-  outages leave gaps (rows simply absent; window lookups return NULL).
+- 1m candle history is backfilled from Bybit listing via
+  scripts/backfill_candles.py (SPEC_CANDLE_BACKFILL, 2026-07-16):
+  LABUSDT from 2025-10-27, HUSDT from 2025-06-25, both at 100% coverage
+  at backfill time. Live collection continues via 240-candle poll fetches;
+  new collector outages can still create gaps until the script is re-run.
+- Derivatives (funding/OI/liquidations) and CAM state are NOT backfilled —
+  irrecoverable / the model was not running. For pre-monitoring timestamps
+  those layers are NULL by design; only the OHLCV, price-feature, EMA and
+  future-behaviour layers are populated there.
 - 3m/5m grids are derived aggregations of 1m closes, not exchange candles.
 - Funding/OI resolution is the ~60s snapshot cadence, not tick data.
 - Liquidation stream capture began with the WebSocket consumer and only

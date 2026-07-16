@@ -207,6 +207,15 @@ append to research_annotations.csv)
 
 Recently completed:
 
+Candle Backfill (SPEC_CANDLE_BACKFILL) — executed 2026-07-16
+(scripts/backfill_candles.py, Bybit REST 1m klines, INSERT-only:
+LABUSDT coverage 37.90% → 100.00% from listing 2025-10-27;
+HUSDT coverage 4.91% → 100.00% from listing 2025-06-25;
+all known gaps closed incl. HUSDT 18–23.06 hole (6302m);
+existing rows untouched — control samples PASS; derivatives
+and CAM state intentionally not backfilled;
+replays re-exported: LABUSDT_replay_v2.csv, HUSDT_replay_v1.csv)
+
 IVS-2.1 Lifecycle Replay Dataset Infrastructure
 (commit d7c5eb5; per HQ brief the production export ran:
 LABUSDT_replay.csv ~28k rows × 112 columns; formal
